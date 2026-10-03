@@ -83,7 +83,7 @@ await import(new URL('../client/client.js', import.meta.url).href)
 
 check('client bundle calls window.__ModuleLoader__.load', registered.length === 1, `${registered.length} registration(s)`)
 const entry = registered[0]
-check('client bundle declares the plugin id', entry?.id === 'dsh-codex', String(entry?.id))
+check('client bundle declares the plugin id', entry?.id === 'dsh-native-codex-cli', String(entry?.id))
 
 let clientExports = null
 try {
@@ -94,7 +94,7 @@ try {
 check('client factory executes without throwing', Boolean(clientExports))
 check('client exports apply()', typeof clientExports?.apply === 'function')
 check('client exports inject as a service list', Array.isArray(clientExports?.inject), JSON.stringify(clientExports?.inject))
-check('client declares the plugin name', clientExports?.name === 'dsh-codex', String(clientExports?.name))
+check('client declares the plugin name', clientExports?.name === 'dsh-native-codex-cli', String(clientExports?.name))
 
 // Apply against a stub slot service that records every declaration.
 const registeredSlots = []
@@ -198,7 +198,7 @@ if (chainEntry) {
 // namespace the cordis loader reads `runtime.Config` from.
 const hostModule = await import(new URL('../lib/entry.js', import.meta.url).href)
 check('host entry resolves through lib/entry.js', typeof hostModule.apply === 'function')
-check('host module exports name', hostModule.name === 'dsh-codex', String(hostModule.name))
+check('host module exports name', hostModule.name === 'dsh-native-codex-cli', String(hostModule.name))
 check('host module exports apply()', typeof hostModule.apply === 'function')
 // Regression guard: a plain-object `Config` export is read by the cordis loader
 // as a *schema*. In the live host that left the entry in the `unsupported` state
@@ -253,8 +253,8 @@ try {
 
 const paths = mountedRoutes.map((route) => route.path).sort()
 console.log(`      host routes: ${paths.join(', ') || '(none)'}`)
-check('host registers the RPC route', paths.includes('/dsh-codex/rpc'))
-check('host registers the SSE route', paths.includes('/dsh-codex/events'))
+check('host registers the RPC route', paths.includes('/dsh-native-codex-cli/rpc'))
+check('host registers the SSE route', paths.includes('/dsh-native-codex-cli/events'))
 check('host does NOT spawn Codex at load time', !hostEffects.some((label) => String(label).includes('spawn')), hostEffects.join(' | '))
 
 const command = registeredCommands.find((definition) => definition.name === 'codex')

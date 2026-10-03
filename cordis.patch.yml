@@ -1,4 +1,4 @@
-# dsh-codex bundle patch: inserts the Codex bridge into a profile's layer stack.
+# dsh-native-codex-cli bundle patch: inserts the Codex bridge into a profile's layer stack.
 #
 # NOTE: this row deliberately carries NO `config:` block.
 #
@@ -11,8 +11,8 @@
 #
 # which is exactly how this plugin first failed to load in the live host. The
 # shipped third-party plugins avoid it by declaring neither. Runtime knobs are
-# therefore read from `~/.dsh/storages/dsh-codex/config.json` (see lib/config.js)
+# therefore read from `~/.dsh/storages/dsh-native-codex-cli/config.json` (see lib/config.js)
 # and fall back to the defaults in lib/index.js.
 - insert:
-    - id: dsh-codex
-      name: 'dsh-codex'
+    - id: dsh-native-codex-cli
+      name: 'dsh-native-codex-cli'

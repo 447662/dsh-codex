@@ -161,7 +161,7 @@ async function main() {
   check('binding persisted for the DSH session', created.binding?.threadId === threadId, JSON.stringify(created.binding?.threadId))
 
   // ---- requirements 3/4/5: send a turn, stream it, see the command result
-  const prompt = 'Run exactly this shell command and nothing else: echo dsh-codex-smoke-ok. Then reply with one short sentence containing the output.'
+  const prompt = 'Run exactly this shell command and nothing else: echo dsh-native-codex-cli-smoke-ok. Then reply with one short sentence containing the output.'
   const started = await bridge.startTurn({
     dshSessionId: 'smoke-session',
     text: prompt,
@@ -233,7 +233,7 @@ async function main() {
   })
   await bridge.startTurn({
     dshSessionId: 'smoke-approval',
-    text: 'Create a file named dsh-codex-approval-probe.txt in the current directory containing the word hello, then delete it.',
+    text: 'Create a file named dsh-native-codex-cli-approval-probe.txt in the current directory containing the word hello, then delete it.',
     clientMessageId: 'smoke-msg-approval',
   })
   const sawApproval = await waitFor(() => approvalsSeen.length > 0, 180_000, 'approval request')

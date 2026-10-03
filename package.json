@@ -1,5 +1,5 @@
 {
-  "name": "dsh-codex",
+  "name": "dsh-native-codex-cli",
   "version": "0.1.0",
   "description": "DeepSeek Harness ⇄ Codex bridge. DSH owns the chat interface; Codex CLI (codex app-server) owns task execution and native thread history. Tasks go straight to Codex — no second AI in the loop, no chat-archive replay.",
   "type": "module",
@@ -52,11 +52,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/447662/dsh-codex.git"
+    "url": "git+https://github.com/447662/dsh-native-codex-cli.git"
   },
-  "homepage": "https://github.com/447662/dsh-codex#readme",
+  "homepage": "https://github.com/447662/dsh-native-codex-cli#readme",
   "bugs": {
-    "url": "https://github.com/447662/dsh-codex/issues"
+    "url": "https://github.com/447662/dsh-native-codex-cli/issues"
   },
   "scripts": {
     "check": "node tools/check-utf8.mjs && node test/load-check.mjs && node test/smoke-bridge.mjs && node test/http-check.mjs",

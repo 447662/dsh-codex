@@ -1,4 +1,4 @@
-# dsh-codex — drive Codex from DSH's chat interface
+# dsh-native-codex-cli — drive Codex from DSH's chat interface
 
 **English** · [简体中文](README.md)
 
@@ -6,8 +6,8 @@ DSH owns the chat interface; **the Codex CLI owns task execution and native thre
 
 ```
 DSH Web GUI (this plugin's client half)
-   │  POST /dsh-codex/rpc       ← request/response
-   │  GET  /dsh-codex/events    ← SSE: streaming output / approvals / notices
+   │  POST /dsh-native-codex-cli/rpc       ← request/response
+   │  GET  /dsh-native-codex-cli/events    ← SSE: streaming output / approvals / notices
    ▼
 this plugin's host half (inside the DSH host process)
    │  newline-delimited JSON-RPC over stdio
@@ -28,7 +28,7 @@ codex app-server   ←→   native Codex CLI threads (the only source of history
 | 5 | Tool display | `commandExecution` (command / status / exit code / output / duration), `fileChange` (file list + unified diff), `mcpToolCall` / `dynamicToolCall` / `webSearch` / `functionCallOutput`, plus `error` / `warning` notices | the `*Item` components in `client/client.js` |
 | 6 | Stop a task | `turn/interrupt` (a real interrupt, not a stopped animation); pending approval requests are refused first so the interrupt is not queued behind an unanswered prompt | `interruptTurn` |
 | 7 | Approvals and questions | server requests → UI cards → the choice is sent back: `item/commandExecution/requestApproval`, `item/fileChange/requestApproval`, `item/permissions/requestApproval`, `item/tool/requestUserInput`, `mcpServer/elicitation/request` | `_onServerRequest`, `buildApprovalResponse`, `ApprovalCard` / `QuestionCard` |
-| 8 | Refresh and restart | the session⇄thread association is persisted to `~/.dsh/storages/dsh-codex/bindings.json`; `clientMessageId` makes resends idempotent; SSE reconnects and re-reads a snapshot; a restarted app-server is handled by an automatic `thread/resume` retry | `lib/bindings.js`, the dedupe in `startTurn`, `connectEvents` |
+| 8 | Refresh and restart | the session⇄thread association is persisted to `~/.dsh/storages/dsh-native-codex-cli/bindings.json`; `clientMessageId` makes resends idempotent; SSE reconnects and re-reads a snapshot; a restarted app-server is handled by an automatic `thread/resume` retry | `lib/bindings.js`, the dedupe in `startTurn`, `connectEvents` |
 
 ---
 
@@ -61,7 +61,7 @@ The mention is case-insensitive and also accepts the full-width `＠` a CJK IME 
 Configuration is a JSON file (**not** a `config:` block in `cordis.patch.yml`):
 
 ```
-~/.dsh/storages/dsh-codex/config.json
+~/.dsh/storages/dsh-native-codex-cli/config.json
 ```
 
 ```json
@@ -89,7 +89,7 @@ A missing or malformed file falls back to the in-code defaults and never blocks 
 > ```
 > No schema library is resolvable from a pnpm-isolated profile package, and exporting a plain default-value object as `Config` (or supplying a patch config without a schema) fails activation with `TypeError: Cannot read properties of undefined (reading 'validate')` — `apply()` never runs. This plugin therefore exports no `Config` and its patch carries no config, exactly like the shipped third-party plugins.
 
-Plugin log: `~/.dsh/logs/dsh-codex.log`, or `GET /dsh-codex/log` for the last 300 lines. The client half posts its own diagnostics (slot registrations, composer hook shapes) to `/dsh-codex/diag`, which lands in the same file.
+Plugin log: `~/.dsh/logs/dsh-native-codex-cli.log`, or `GET /dsh-native-codex-cli/log` for the last 300 lines. The client half posts its own diagnostics (slot registrations, composer hook shapes) to `/dsh-native-codex-cli/diag`, which lands in the same file.
 
 ---
 
@@ -98,7 +98,7 @@ Plugin log: `~/.dsh/logs/dsh-codex.log`, or `GET /dsh-codex/log` for the last 30
 ### From GitHub (recommended)
 
 ```bash
-dsh plugin --profile desktop add git+https://github.com/447662/dsh-codex.git
+dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-cli.git
 ```
 
 Then **restart DSH**. `dsh plugin add` writes the package into the profile's `dependencies` and `dsh.profile.bundles`, and the plugin's own `cordis.patch.yml` inserts itself into the loader tree.
@@ -108,23 +108,23 @@ Then **restart DSH**. `dsh plugin add` writes the package into the profile's `de
 ### From a local clone (development)
 
 ```powershell
-git clone https://github.com/447662/dsh-codex.git <repo-path>
+git clone https://github.com/447662/dsh-native-codex-cli.git <repo-path>
 
 # 1) let the profile resolve the package (a junction is equivalent to pnpm link)
-New-Item -ItemType Junction -Path "$env:DSH_PROFILE_DIR\node_modules\dsh-codex" -Target "<repo-path>"
+New-Item -ItemType Junction -Path "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Target "<repo-path>"
 
 # 2) in the profile's package.json add:
-#    dependencies."dsh-codex" = "link:<repo-path>"
-#    dsh.profile.bundles      += "dsh-codex"
-#    do NOT add a config for dsh-codex in cordis.patch.yml (see section 3)
+#    dependencies."dsh-native-codex-cli" = "link:<repo-path>"
+#    dsh.profile.bundles      += "dsh-native-codex-cli"
+#    do NOT add a config for dsh-native-codex-cli in cordis.patch.yml (see section 3)
 ```
 
 ### Uninstall
 
 ```powershell
-# remove dsh-codex from the profile's dsh.profile.bundles and dependencies,
-# drop the junction (or `dsh plugin --profile desktop remove dsh-codex`), then restart DSH.
-Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-codex" -Force
+# remove dsh-native-codex-cli from the profile's dsh.profile.bundles and dependencies,
+# drop the junction (or `dsh plugin --profile desktop remove dsh-native-codex-cli`), then restart DSH.
+Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Force
 ```
 
 Both halves are **failure-safe**: the host half hard-depends on nothing (if `ctx.inject` cannot reach `webServer` it only logs), the client half wraps every slot registration in its own try/catch, and **no Codex process is spawned at load time** (the first call starts it).
@@ -133,10 +133,10 @@ Both halves are **failure-safe**: the host half hard-depends on nothing (if `ctx
 
 Work down this list; each step identifies exactly one layer:
 
-1. `[boot] module imported` in `~/.dsh/logs/dsh-codex.log` → the module resolved. Absent → package name / `exports` resolution failed.
-2. `[boot]` present but no `[host] dsh-codex host loaded` → the entry was created but **did not activate**; on this host that is almost always the `Config` schema issue from section 3.
+1. `[boot] module imported` in `~/.dsh/logs/dsh-native-codex-cli.log` → the module resolved. Absent → package name / `exports` resolution failed.
+2. `[boot]` present but no `[host] dsh-native-codex-cli host loaded` → the entry was created but **did not activate**; on this host that is almost always the `Config` schema issue from section 3.
 3. `[host]` present but no `[routes] routes mounted` → the `webServer` service was not available.
-4. All three present but `POST /dsh-codex/rpc` still 404s → the routes registered on a different web-server instance.
+4. All three present but `POST /dsh-native-codex-cli/rpc` still 404s → the routes registered on a different web-server instance.
 
 ---
 
@@ -157,7 +157,7 @@ npm run check:http     # HTTP boundary
 | `tools/check-utf8.mjs` | no file is non-UTF-8 or BOM-prefixed — a Windows shell round-trip once read these UTF-8 sources as GBK and silently destroyed every Chinese character in the README |
 | `test/load-check.mjs` | client bundle preamble, the six slot declarations, composer selector purity, host route mounting, `/codex` command shape, **session-mirror event shapes**, **the Markdown renderer** |
 | `test/smoke-bridge.mjs` | spawns a real `codex app-server` and covers requirements 1–8: thread list / create (cwd + permissions) / submit turn / streaming deltas / command and file-change items / a real interrupt / **a real approval round-trip** / dedupe and history restore |
-| `test/http-check.mjs` | the exact surface the browser uses: `POST /dsh-codex/rpc` + `GET /dsh-codex/events` (SSE) |
+| `test/http-check.mjs` | the exact surface the browser uses: `POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events` (SSE) |
 
 Current results: **load-check green / smoke-bridge 25/25 / http-check 22/22**.
 
@@ -177,8 +177,8 @@ Current results: **load-check green / smoke-bridge 25/25 / http-check 22/22**.
 3. **History comes from `thread/resume` only.** On Codex CLI 0.153.4 `thread/turns/list` answers `list_turns is not supported yet`, and `thread/read` with `includeTurns` fails the same way. The plugin detects this, stops paging, and uses the `resume` payload; the paging code is a dead path that will start working if Codex implements it.
 4. **`assistant/message` cannot be written by a plugin.** A real one embeds the provider stream (`usage` / `stream`); without it DSH's session projection throws `Cannot read properties of undefined (reading 'length')` and that session's history stops loading. The session mirror therefore writes only `user/message` plus the turn lifecycle, and Codex's answers are rendered by the main-page dock.
 5. **The generated protocol bindings lag the runtime**: 0.153.4 emits fields the bindings do not declare (`canAcceptDirectInput`, `availableDecisions`, …). The plugin reads only what it needs and ignores the rest.
-6. **`conversation.input.right`'s `useInput` / `inputActions` shapes are probed at runtime**: after the first load in a real GUI, `~/.dsh/logs/dsh-codex.log` contains a `composer-hooks` line with the field names the host actually passes. If they differ for you, adjust the `liveDraft` / clear-draft branches in `ComposerCodexAction` to match that line.
-7. **Uploaded images are written to disk** under `~/.dsh/storages/dsh-codex/uploads/` and served by `GET /dsh-codex/image?p=<path>` (the path is confined to that directory). Files are not cleaned up automatically.
+6. **`conversation.input.right`'s `useInput` / `inputActions` shapes are probed at runtime**: after the first load in a real GUI, `~/.dsh/logs/dsh-native-codex-cli.log` contains a `composer-hooks` line with the field names the host actually passes. If they differ for you, adjust the `liveDraft` / clear-draft branches in `ComposerCodexAction` to match that line.
+7. **Uploaded images are written to disk** under `~/.dsh/storages/dsh-native-codex-cli/uploads/` and served by `GET /dsh-native-codex-cli/image?p=<path>` (the path is confined to that directory). Files are not cleaned up automatically.
 8. `turn/start` returns a **stub** (`itemsView:"notLoaded"`, empty timestamps) and `turn/completed` carries only an `itemsView:"summary"` slice. The mirror is built from `item/started` / `item/completed` / deltas instead.
 
 ---
@@ -186,8 +186,8 @@ Current results: **load-check green / smoke-bridge 25/25 / http-check 22/22**.
 ## 7. Contributing
 
 ```bash
-git clone https://github.com/447662/dsh-codex.git
-cd dsh-codex
+git clone https://github.com/447662/dsh-native-codex-cli.git
+cd dsh-native-codex-cli
 npm run check          # all four self-checks should be green
 ```
 
@@ -203,6 +203,6 @@ Conventions:
 
 ## 8. License
 
-[MIT](LICENSE) © dsh-codex contributors
+[MIT](LICENSE) © dsh-native-codex-cli contributors
 
 An independent community project, not affiliated with DeepSeek or OpenAI. Codex is an OpenAI product; this plugin merely drives the locally installed CLI through its public `codex app-server` protocol.

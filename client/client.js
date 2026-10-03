@@ -1,5 +1,5 @@
 /**
- * dsh-codex — Client half.
+ * dsh-native-codex-cli — Client half.
  *
  * Loaded by the DSH web module loader as a package client bundle. DSH owns the
  * shell (sidebar, panels, session nav, theme); this module supplies the Codex
@@ -16,10 +16,10 @@
  *                            hands the current draft to Codex
  *
  * Everything rendered here comes from Codex's own protocol frames relayed by
- * the Host half over POST /dsh-codex/rpc and GET /dsh-codex/events.
+ * the Host half over POST /dsh-native-codex-cli/rpc and GET /dsh-native-codex-cli/events.
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-codex',
+  id: 'dsh-native-codex-cli',
   factory: (require) => {
     // The DSH web module loader hands the factory only `require`; the bundle is
     // responsible for its own CommonJS-ish preamble, exactly like the shipped
@@ -32,10 +32,10 @@ window.__ModuleLoader__.load({
 
     // ---------------------------------------------------------------- constants
 
-    const NS = 'dsh-codex'
-    const RPC_URL = '/dsh-codex/rpc'
-    const EVENTS_URL = '/dsh-codex/events'
-    const DIAG_URL = '/dsh-codex/diag'
+    const NS = 'dsh-native-codex-cli'
+    const RPC_URL = '/dsh-native-codex-cli/rpc'
+    const EVENTS_URL = '/dsh-native-codex-cli/events'
+    const DIAG_URL = '/dsh-native-codex-cli/diag'
 
     const APPROVAL_LABELS = {
       accept: '允许一次',
@@ -128,12 +128,12 @@ window.__ModuleLoader__.load({
         body: JSON.stringify({ method, params }),
       })
       const payload = await response.json().catch(() => null)
-      if (!payload) throw new Error(`dsh-codex: empty reply from ${method}`)
-      if (!payload.ok) throw new Error(payload.error?.message ?? `dsh-codex: ${method} failed`)
+      if (!payload) throw new Error(`dsh-native-codex-cli: empty reply from ${method}`)
+      if (!payload.ok) throw new Error(payload.error?.message ?? `dsh-native-codex-cli: ${method} failed`)
       return payload.result
     }
 
-    /** Client-side diagnostics are readable at GET /dsh-codex/log. */
+    /** Client-side diagnostics are readable at GET /dsh-native-codex-cli/log. */
     function diag(kind, detail) {
       try {
         const line = { kind, detail, at: new Date().toISOString() }
@@ -158,7 +158,7 @@ window.__ModuleLoader__.load({
         message,
         stack: typeof error?.stack === 'string' ? error.stack.slice(0, 3000) : null,
       })
-      console.error(`[dsh-codex] ${context}`, error)
+      console.error(`[dsh-native-codex-cli] ${context}`, error)
     }
 
     // ------------------------------------------------------------------- events
@@ -679,7 +679,7 @@ window.__ModuleLoader__.load({
         const token = match[0]
         const key = `${prefix}-i${index++}`
         if (token.startsWith('`')) {
-          nodes.push(h('code', { key, className: 'dsh-codex-inline-code' }, token.slice(1, -1)))
+          nodes.push(h('code', { key, className: 'dsh-native-codex-cli-inline-code' }, token.slice(1, -1)))
         } else if (token.startsWith('**') || token.startsWith('__')) {
           nodes.push(h('strong', { key }, renderInline(token.slice(2, -2), key)))
         } else if (token.startsWith('[')) {
@@ -720,7 +720,7 @@ window.__ModuleLoader__.load({
           index += 1
           blocks.push(h(
             'pre',
-            { key: key++, className: 'dsh-codex-code' },
+            { key: key++, className: 'dsh-native-codex-cli-code' },
             h('code', language ? { className: `language-${language}` } : null, body.join('\n')),
           ))
           continue
@@ -728,7 +728,7 @@ window.__ModuleLoader__.load({
 
         const heading = /^(#{1,6})\s+(.*)$/.exec(line)
         if (heading) {
-          blocks.push(h(headingLevels[heading[1].length - 1], { key: key++, className: 'dsh-codex-h' }, renderInline(heading[2], `h${key}`)))
+          blocks.push(h(headingLevels[heading[1].length - 1], { key: key++, className: 'dsh-native-codex-cli-h' }, renderInline(heading[2], `h${key}`)))
           index += 1
           continue
         }
@@ -758,7 +758,7 @@ window.__ModuleLoader__.load({
           }
           blocks.push(h(
             ordered ? 'ol' : 'ul',
-            { key: key++, className: 'dsh-codex-list' },
+            { key: key++, className: 'dsh-native-codex-cli-list' },
             items.map((item, itemIndex) => h('li', { key: itemIndex }, renderInline(item, `l${key}-${itemIndex}`))),
           ))
           continue
@@ -789,7 +789,7 @@ window.__ModuleLoader__.load({
           if (lineIndex > 0) children.push(h('br', { key: `br${lineIndex}` }))
           children.push(...renderInline(text, `p${key}-${lineIndex}`))
         })
-        blocks.push(h('p', { key: key++, className: 'dsh-codex-p' }, children))
+        blocks.push(h('p', { key: key++, className: 'dsh-native-codex-cli-p' }, children))
       }
 
       return blocks
@@ -826,7 +826,7 @@ window.__ModuleLoader__.load({
         if (this.state.error) {
           return h(
             'div',
-            { className: 'dsh-codex-error dsh-codex-error-bar' },
+            { className: 'dsh-native-codex-cli-error dsh-native-codex-cli-error-bar' },
             `Codex 界面渲染出错（已隔离，不影响 DSH）：${this.state.error.message}`,
           )
         }
@@ -840,7 +840,7 @@ window.__ModuleLoader__.load({
 
     function StatusDot({ status, label }) {
       const tone = status === 'open' ? 'ok' : status === 'reconnecting' ? 'warn' : 'off'
-      return h('span', { className: `dsh-codex-dot dsh-codex-dot-${tone}`, title: asText(label ?? status, '') }, null)
+      return h('span', { className: `dsh-native-codex-cli-dot dsh-native-codex-cli-dot-${tone}`, title: asText(label ?? status, '') }, null)
     }
 
     function CodexIcon({ size = 18, active }) {
@@ -859,11 +859,11 @@ window.__ModuleLoader__.load({
     }
 
     function Empty({ text }) {
-      return h('div', { className: 'dsh-codex-empty' }, text)
+      return h('div', { className: 'dsh-native-codex-cli-empty' }, text)
     }
 
     function Spinner({ label }) {
-      return h('span', { className: 'dsh-codex-spinner', role: 'status' }, label ?? '')
+      return h('span', { className: 'dsh-native-codex-cli-spinner', role: 'status' }, label ?? '')
     }
 
     // ------------------------------------------------------------- item renderers
@@ -908,12 +908,12 @@ window.__ModuleLoader__.load({
         declined: ['warn', '已拒绝'],
       }
       const [tone, text] = map[key] ?? ['off', key]
-      return h('span', { className: `dsh-codex-badge dsh-codex-badge-${tone}` }, text)
+      return h('span', { className: `dsh-native-codex-cli-badge dsh-native-codex-cli-badge-${tone}` }, text)
     }
 
     /** Turn a staged upload path back into something the browser can render. */
     function imageUrlFor(path) {
-      return `/dsh-codex/image?p=${encodeURIComponent(String(path ?? ''))}`
+      return `/dsh-native-codex-cli/image?p=${encodeURIComponent(String(path ?? ''))}`
     }
 
     /**
@@ -932,20 +932,20 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-row dsh-codex-row-user' },
+        { className: 'dsh-native-codex-cli-row dsh-native-codex-cli-row-user' },
         h(
           'div',
-          { className: 'dsh-codex-bubble dsh-codex-bubble-user' },
+          { className: 'dsh-native-codex-cli-bubble dsh-native-codex-cli-bubble-user' },
           text ? renderRichText(text) : null,
           images.length
             ? h(
               'div',
-              { className: 'dsh-codex-bubble-images' },
+              { className: 'dsh-native-codex-cli-bubble-images' },
               images.map((part, index) => {
                 const src = part.type === 'image' ? part.url : imageUrlFor(part.path)
                 return h('img', {
                   key: `${index}-${src ?? ''}`,
-                  className: 'dsh-codex-thumb',
+                  className: 'dsh-native-codex-cli-thumb',
                   src,
                   alt: part.name ?? '图片',
                   title: '点击放大',
@@ -955,7 +955,7 @@ window.__ModuleLoader__.load({
             )
             : null,
           others.length
-            ? h('div', { className: 'dsh-codex-muted' }, others.map((part) => `[${part.type}] ${part.path ?? part.url ?? part.name ?? ''}`).join(' '))
+            ? h('div', { className: 'dsh-native-codex-cli-muted' }, others.map((part) => `[${part.type}] ${part.path ?? part.url ?? part.name ?? ''}`).join(' '))
             : null,
         ),
       )
@@ -968,7 +968,7 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         {
-          className: 'dsh-codex-lightbox',
+          className: 'dsh-native-codex-cli-lightbox',
           title: '点击关闭',
           onClick: () => store.set({ lightbox: null }),
         },
@@ -980,8 +980,8 @@ window.__ModuleLoader__.load({
       const streaming = item.__streaming
       return h(
         'div',
-        { className: 'dsh-codex-row' },
-        h('div', { className: 'dsh-codex-bubble' }, renderRichText(item.text ?? ''), streaming ? h(Spinner, { label: '' }) : null),
+        { className: 'dsh-native-codex-cli-row' },
+        h('div', { className: 'dsh-native-codex-cli-bubble' }, renderRichText(item.text ?? ''), streaming ? h(Spinner, { label: '' }) : null),
       )
     }
 
@@ -990,14 +990,14 @@ window.__ModuleLoader__.load({
       if (!body) return null
       return h(
         'details',
-        { className: 'dsh-codex-card dsh-codex-reasoning' },
+        { className: 'dsh-native-codex-cli-card dsh-native-codex-cli-reasoning' },
         h('summary', null, `思考过程 (${body.length} 字)`),
-        h('pre', { className: 'dsh-codex-pre' }, body),
+        h('pre', { className: 'dsh-native-codex-cli-pre' }, body),
       )
     }
 
     function PlanItem({ item }) {
-      return h('div', { className: 'dsh-codex-card' }, h('div', { className: 'dsh-codex-card-title' }, '计划'), renderRichText(item.text ?? ''))
+      return h('div', { className: 'dsh-native-codex-cli-card' }, h('div', { className: 'dsh-native-codex-cli-card-title' }, '计划'), renderRichText(item.text ?? ''))
     }
 
     function CommandExecutionItem({ item }) {
@@ -1005,29 +1005,29 @@ window.__ModuleLoader__.load({
       const output = item.aggregatedOutput ?? ''
       return h(
         'div',
-        { className: 'dsh-codex-card dsh-codex-tool' },
+        { className: 'dsh-native-codex-cli-card dsh-native-codex-cli-tool' },
         h(
           'div',
-          { className: 'dsh-codex-card-head' },
-          h('span', { className: 'dsh-codex-tool-kind' }, '命令'),
+          { className: 'dsh-native-codex-cli-card-head' },
+          h('span', { className: 'dsh-native-codex-cli-tool-kind' }, '命令'),
           statusBadge(item.status),
           item.exitCode !== undefined && item.exitCode !== null
-            ? h('span', { className: `dsh-codex-badge ${item.exitCode === 0 ? 'dsh-codex-badge-ok' : 'dsh-codex-badge-error'}` }, `exit ${item.exitCode}`)
+            ? h('span', { className: `dsh-native-codex-cli-badge ${item.exitCode === 0 ? 'dsh-native-codex-cli-badge-ok' : 'dsh-native-codex-cli-badge-error'}` }, `exit ${item.exitCode}`)
             : null,
-          item.durationMs ? h('span', { className: 'dsh-codex-muted' }, `${(item.durationMs / 1000).toFixed(1)}s`) : null,
+          item.durationMs ? h('span', { className: 'dsh-native-codex-cli-muted' }, `${(item.durationMs / 1000).toFixed(1)}s`) : null,
         ),
-        h('pre', { className: 'dsh-codex-pre dsh-codex-pre-cmd' }, `$ ${item.command ?? ''}`),
-        item.cwd ? h('div', { className: 'dsh-codex-muted dsh-codex-cwd' }, asText(item.cwd)) : null,
+        h('pre', { className: 'dsh-native-codex-cli-pre dsh-native-codex-cli-pre-cmd' }, `$ ${item.command ?? ''}`),
+        item.cwd ? h('div', { className: 'dsh-native-codex-cli-muted dsh-native-codex-cli-cwd' }, asText(item.cwd)) : null,
         output
           ? h(
             'div',
             null,
             h(
               'button',
-              { type: 'button', className: 'dsh-codex-link', onClick: () => setOpen(!open) },
+              { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => setOpen(!open) },
               open ? '收起输出' : `展开输出 (${output.length} 字)`,
             ),
-            open ? h('pre', { className: 'dsh-codex-pre' }, output) : null,
+            open ? h('pre', { className: 'dsh-native-codex-cli-pre' }, output) : null,
           )
           : null,
       )
@@ -1038,33 +1038,33 @@ window.__ModuleLoader__.load({
       const [open, setOpen] = React.useState(false)
       return h(
         'div',
-        { className: 'dsh-codex-card dsh-codex-tool' },
+        { className: 'dsh-native-codex-cli-card dsh-native-codex-cli-tool' },
         h(
           'div',
-          { className: 'dsh-codex-card-head' },
-          h('span', { className: 'dsh-codex-tool-kind' }, '文件改动'),
+          { className: 'dsh-native-codex-cli-card-head' },
+          h('span', { className: 'dsh-native-codex-cli-tool-kind' }, '文件改动'),
           statusBadge(item.status),
-          h('span', { className: 'dsh-codex-muted' }, `${changes.length} 个文件`),
+          h('span', { className: 'dsh-native-codex-cli-muted' }, `${changes.length} 个文件`),
         ),
         h(
           'ul',
-          { className: 'dsh-codex-filelist' },
+          { className: 'dsh-native-codex-cli-filelist' },
           changes.map((change, index) => h(
             'li',
             { key: index },
-            h('span', { className: 'dsh-codex-filekind' }, change.kind ?? change.type ?? '?'),
-            h('span', { className: 'dsh-codex-filepath' }, change.path ?? change.move_path ?? ''),
+            h('span', { className: 'dsh-native-codex-cli-filekind' }, change.kind ?? change.type ?? '?'),
+            h('span', { className: 'dsh-native-codex-cli-filepath' }, change.path ?? change.move_path ?? ''),
           )),
         ),
         changes.some((change) => change.diff)
           ? h(
             'div',
             null,
-            h('button', { type: 'button', className: 'dsh-codex-link', onClick: () => setOpen(!open) }, open ? '收起 diff' : '查看 diff'),
-            open ? h('pre', { className: 'dsh-codex-pre' }, changes.map((change) => change.diff).filter(Boolean).join('\n')) : null,
+            h('button', { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => setOpen(!open) }, open ? '收起 diff' : '查看 diff'),
+            open ? h('pre', { className: 'dsh-native-codex-cli-pre' }, changes.map((change) => change.diff).filter(Boolean).join('\n')) : null,
           )
           : null,
-        item.outputText ? h('pre', { className: 'dsh-codex-pre' }, item.outputText) : null,
+        item.outputText ? h('pre', { className: 'dsh-native-codex-cli-pre' }, item.outputText) : null,
       )
     }
 
@@ -1073,23 +1073,23 @@ window.__ModuleLoader__.load({
       const details = JSON.stringify({ arguments: item.arguments, result: item.result, error: item.error, output: item.output }, null, 2)
       return h(
         'div',
-        { className: 'dsh-codex-card dsh-codex-tool' },
+        { className: 'dsh-native-codex-cli-card dsh-native-codex-cli-tool' },
         h(
           'div',
-          { className: 'dsh-codex-card-head' },
-          h('span', { className: 'dsh-codex-tool-kind' }, label),
-          item.server ? h('span', { className: 'dsh-codex-muted' }, asText(item.server)) : null,
-          h('span', { className: 'dsh-codex-mono' }, asText(item.tool ?? item.name, '')),
+          { className: 'dsh-native-codex-cli-card-head' },
+          h('span', { className: 'dsh-native-codex-cli-tool-kind' }, label),
+          item.server ? h('span', { className: 'dsh-native-codex-cli-muted' }, asText(item.server)) : null,
+          h('span', { className: 'dsh-native-codex-cli-mono' }, asText(item.tool ?? item.name, '')),
           statusBadge(item.status),
         ),
-        item.error ? h('div', { className: 'dsh-codex-error' }, String(item.error.message ?? item.error)) : null,
-        h('button', { type: 'button', className: 'dsh-codex-link', onClick: () => setOpen(!open) }, open ? '收起详情' : '查看详情'),
-        open ? h('pre', { className: 'dsh-codex-pre' }, details) : null,
+        item.error ? h('div', { className: 'dsh-native-codex-cli-error' }, String(item.error.message ?? item.error)) : null,
+        h('button', { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => setOpen(!open) }, open ? '收起详情' : '查看详情'),
+        open ? h('pre', { className: 'dsh-native-codex-cli-pre' }, details) : null,
       )
     }
 
     function NoticeItem({ notice }) {
-      return h('div', { className: `dsh-codex-notice dsh-codex-notice-${notice.level}` }, String(notice.message ?? ''))
+      return h('div', { className: `dsh-native-codex-cli-notice dsh-native-codex-cli-notice-${notice.level}` }, String(notice.message ?? ''))
     }
 
     function renderItem(item, index, streamingItemId) {
@@ -1122,7 +1122,7 @@ window.__ModuleLoader__.load({
         case 'imageGeneration':
           return h(GenericToolItem, { key, item, label: '生成图片' })
         case 'contextCompaction':
-          return h('div', { key, className: 'dsh-codex-notice dsh-codex-notice-info' }, '上下文已压缩')
+          return h('div', { key, className: 'dsh-native-codex-cli-notice dsh-native-codex-cli-notice-info' }, '上下文已压缩')
         case 'hookPrompt':
           return h(GenericToolItem, { key, item, label: 'Hook' })
         default:
@@ -1136,22 +1136,22 @@ window.__ModuleLoader__.load({
       const items = (turn.items ?? []).filter(Boolean)
       return h(
         'div',
-        { className: 'dsh-codex-turn' },
+        { className: 'dsh-native-codex-cli-turn' },
         items.map((item, index) => renderItem(item, index, streamingItemId)),
         turn.diff
           ? h(
             'details',
-            { className: 'dsh-codex-card' },
+            { className: 'dsh-native-codex-cli-card' },
             h('summary', null, '本轮改动 diff'),
-            h('pre', { className: 'dsh-codex-pre' }, turn.diff),
+            h('pre', { className: 'dsh-native-codex-cli-pre' }, turn.diff),
           )
           : null,
-        turn.error ? h('div', { className: 'dsh-codex-error' }, `本轮错误：${turn.error.message ?? JSON.stringify(turn.error)}`) : null,
+        turn.error ? h('div', { className: 'dsh-native-codex-cli-error' }, `本轮错误：${turn.error.message ?? JSON.stringify(turn.error)}`) : null,
         h(
           'div',
-          { className: 'dsh-codex-turn-foot' },
+          { className: 'dsh-native-codex-cli-turn-foot' },
           statusBadge(turn.status),
-          turn.durationMs ? h('span', { className: 'dsh-codex-muted' }, `${(turn.durationMs / 1000).toFixed(1)}s`) : null,
+          turn.durationMs ? h('span', { className: 'dsh-native-codex-cli-muted' }, `${(turn.durationMs / 1000).toFixed(1)}s`) : null,
         ),
       )
     }
@@ -1179,11 +1179,11 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-transcript-wrap' },
+        { className: 'dsh-native-codex-cli-transcript-wrap' },
         h(
           'div',
           {
-            className: 'dsh-codex-transcript',
+            className: 'dsh-native-codex-cli-transcript',
             ref: scroller,
             onScroll: (event) => {
               const el = event.currentTarget
@@ -1208,7 +1208,7 @@ window.__ModuleLoader__.load({
         return !threadId || !id || id === threadId
       })
       if (relevant.length === 0) return null
-      return h('div', { className: 'dsh-codex-approval-dock' }, relevant.map((request) => h(ApprovalCard, { key: request.requestId, request })))
+      return h('div', { className: 'dsh-native-codex-cli-approval-dock' }, relevant.map((request) => h(ApprovalCard, { key: request.requestId, request })))
     }
 
     function ApprovalCard({ request }) {
@@ -1228,46 +1228,46 @@ window.__ModuleLoader__.load({
         body = h(
           'div',
           null,
-          h('pre', { className: 'dsh-codex-pre dsh-codex-pre-cmd' }, params.command ?? '(无命令文本)'),
-          params.cwd ? h('div', { className: 'dsh-codex-muted dsh-codex-cwd' }, asText(params.cwd)) : null,
-          params.reason ? h('div', { className: 'dsh-codex-muted' }, params.reason) : null,
+          h('pre', { className: 'dsh-native-codex-cli-pre dsh-native-codex-cli-pre-cmd' }, params.command ?? '(无命令文本)'),
+          params.cwd ? h('div', { className: 'dsh-native-codex-cli-muted dsh-native-codex-cli-cwd' }, asText(params.cwd)) : null,
+          params.reason ? h('div', { className: 'dsh-native-codex-cli-muted' }, params.reason) : null,
         )
       } else if (request.kind === 'fileChange') {
         title = 'Codex 请求修改文件'
         body = h(
           'div',
           null,
-          params.grantRoot ? h('div', { className: 'dsh-codex-muted' }, `范围：${params.grantRoot}`) : null,
-          params.reason ? h('div', { className: 'dsh-codex-muted' }, params.reason) : null,
+          params.grantRoot ? h('div', { className: 'dsh-native-codex-cli-muted' }, `范围：${params.grantRoot}`) : null,
+          params.reason ? h('div', { className: 'dsh-native-codex-cli-muted' }, params.reason) : null,
         )
       } else if (request.kind === 'permissions') {
         title = 'Codex 请求额外权限'
-        body = h('pre', { className: 'dsh-codex-pre' }, JSON.stringify(params.permissions ?? {}, null, 2))
+        body = h('pre', { className: 'dsh-native-codex-cli-pre' }, JSON.stringify(params.permissions ?? {}, null, 2))
       } else if (request.kind === 'elicitation') {
         title = 'MCP 服务请求输入'
-        body = h('div', null, h('div', null, params.message ?? ''), h('pre', { className: 'dsh-codex-pre' }, JSON.stringify(params.requestedSchema ?? {}, null, 2)))
+        body = h('div', null, h('div', null, params.message ?? ''), h('pre', { className: 'dsh-native-codex-cli-pre' }, JSON.stringify(params.requestedSchema ?? {}, null, 2)))
       } else {
-        body = h('pre', { className: 'dsh-codex-pre' }, JSON.stringify(params, null, 2))
+        body = h('pre', { className: 'dsh-native-codex-cli-pre' }, JSON.stringify(params, null, 2))
       }
 
       return h(
         'div',
-        { className: 'dsh-codex-approval' },
-        h('div', { className: 'dsh-codex-approval-title' }, title),
+        { className: 'dsh-native-codex-cli-approval' },
+        h('div', { className: 'dsh-native-codex-cli-approval-title' }, title),
         body,
         request.kind === 'elicitation'
           ? h(
             'div',
-            { className: 'dsh-codex-approval-actions' },
+            { className: 'dsh-native-codex-cli-approval-actions' },
             h('button', { type: 'button', onClick: () => refuseApproval(request) }, '拒绝'),
           )
           : h(
             'div',
-            { className: 'dsh-codex-approval-actions' },
-            h('button', { type: 'button', className: 'dsh-codex-primary', disabled: busy, onClick: () => decide({ decision: 'accept' }) }, APPROVAL_LABELS.accept),
+            { className: 'dsh-native-codex-cli-approval-actions' },
+            h('button', { type: 'button', className: 'dsh-native-codex-cli-primary', disabled: busy, onClick: () => decide({ decision: 'accept' }) }, APPROVAL_LABELS.accept),
             h('button', { type: 'button', disabled: busy, onClick: () => decide({ decision: 'acceptForSession' }) }, APPROVAL_LABELS.acceptForSession),
             h('button', { type: 'button', onClick: () => decide({ decision: 'decline' }) }, APPROVAL_LABELS.decline),
-            h('button', { type: 'button', className: 'dsh-codex-danger', onClick: () => decide({ decision: 'cancel' }) }, APPROVAL_LABELS.cancel),
+            h('button', { type: 'button', className: 'dsh-native-codex-cli-danger', onClick: () => decide({ decision: 'cancel' }) }, APPROVAL_LABELS.cancel),
           ),
       )
     }
@@ -1300,24 +1300,24 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-approval' },
-        h('div', { className: 'dsh-codex-approval-title' }, 'Codex 需要你确认'),
+        { className: 'dsh-native-codex-cli-approval' },
+        h('div', { className: 'dsh-native-codex-cli-approval-title' }, 'Codex 需要你确认'),
         questions.map((question) => h(
           'div',
-          { key: question.id, className: 'dsh-codex-question' },
-          h('div', { className: 'dsh-codex-question-header' }, question.header || question.question),
-          question.header && question.question !== question.header ? h('div', { className: 'dsh-codex-question-text' }, question.question) : null,
+          { key: question.id, className: 'dsh-native-codex-cli-question' },
+          h('div', { className: 'dsh-native-codex-cli-question-header' }, question.header || question.question),
+          question.header && question.question !== question.header ? h('div', { className: 'dsh-native-codex-cli-question-text' }, question.question) : null,
           (question.options ?? []).map((option) => h(
             'label',
-            { key: option.label, className: 'dsh-codex-option' },
+            { key: option.label, className: 'dsh-native-codex-cli-option' },
             h('input', { type: 'checkbox', checked: (answers[question.id] ?? []).includes(option.label), onChange: () => toggle(question, option.label) }),
             h('span', null, option.label),
-            option.description ? h('span', { className: 'dsh-codex-muted' }, option.description) : null,
+            option.description ? h('span', { className: 'dsh-native-codex-cli-muted' }, option.description) : null,
           )),
           question.isOther !== false
             ? h('input', {
               type: 'text',
-              className: 'dsh-codex-input',
+              className: 'dsh-native-codex-cli-input',
               placeholder: '其他回答…',
               value: custom[question.id] ?? '',
               onChange: (event) => setCustom((current) => ({ ...current, [question.id]: event.target.value })),
@@ -1326,8 +1326,8 @@ window.__ModuleLoader__.load({
         )),
         h(
           'div',
-          { className: 'dsh-codex-approval-actions' },
-          h('button', { type: 'button', className: 'dsh-codex-primary', disabled: busy, onClick: submit }, '提交'),
+          { className: 'dsh-native-codex-cli-approval-actions' },
+          h('button', { type: 'button', className: 'dsh-native-codex-cli-primary', disabled: busy, onClick: submit }, '提交'),
           h('button', { type: 'button', onClick: () => refuseApproval(request) }, '拒绝'),
         ),
       )
@@ -1439,19 +1439,19 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: `dsh-codex-composer${compact ? ' dsh-codex-composer-compact' : ''}` },
+        { className: `dsh-native-codex-cli-composer${compact ? ' dsh-native-codex-cli-composer-compact' : ''}` },
         // Attachment rail: pasted/picked screenshots, removable before sending.
         images.length
           ? h(
             'div',
-            { className: 'dsh-codex-attachments' },
+            { className: 'dsh-native-codex-cli-attachments' },
             images.map((image) => h(
               'span',
-              { key: image.id, className: 'dsh-codex-attachment' },
+              { key: image.id, className: 'dsh-native-codex-cli-attachment' },
               h('img', { src: image.dataUrl, alt: image.name, title: image.name }),
               h('button', {
                 type: 'button',
-                className: 'dsh-codex-attachment-remove',
+                className: 'dsh-native-codex-cli-attachment-remove',
                 title: '移除',
                 onClick: () => setImages((current) => current.filter((item) => item.id !== image.id)),
               }, '×'),
@@ -1459,7 +1459,7 @@ window.__ModuleLoader__.load({
           )
           : null,
         h('textarea', {
-          className: 'dsh-codex-textarea',
+          className: 'dsh-native-codex-cli-textarea',
           value: draft,
           rows: compact ? 2 : 3,
           placeholder: running ? 'Codex 正在执行；输入内容会作为追加指令发送' : '交给 Codex 执行…（可直接粘贴图片与任务，无需转述）',
@@ -1474,18 +1474,18 @@ window.__ModuleLoader__.load({
         }),
         h(
           'div',
-          { className: 'dsh-codex-composer-bar' },
+          { className: 'dsh-native-codex-cli-composer-bar' },
           h(
             'div',
-            { className: 'dsh-codex-composer-selects' },
+            { className: 'dsh-native-codex-cli-composer-selects' },
             h(
               'label',
-              { className: 'dsh-codex-select-field', title: '下一个 turn 使用的 Codex 模型' },
+              { className: 'dsh-native-codex-cli-select-field', title: '下一个 turn 使用的 Codex 模型' },
               h('span', null, '模型'),
               h(
                 'select',
                 {
-                  className: 'dsh-codex-select',
+                  className: 'dsh-native-codex-cli-select',
                   value: model,
                   onChange: (event) => choose({ model: event.target.value }),
                 },
@@ -1495,12 +1495,12 @@ window.__ModuleLoader__.load({
             ),
             h(
               'label',
-              { className: 'dsh-codex-select-field', title: '审批策略（随 turn 生效）' },
+              { className: 'dsh-native-codex-cli-select-field', title: '审批策略（随 turn 生效）' },
               h('span', null, '审批'),
               h(
                 'select',
                 {
-                  className: 'dsh-codex-select',
+                  className: 'dsh-native-codex-cli-select',
                   value: approvalPolicy || 'on-request',
                   onChange: (event) => choose({ approvalPolicy: event.target.value }),
                 },
@@ -1511,12 +1511,12 @@ window.__ModuleLoader__.load({
             ),
             h(
               'label',
-              { className: 'dsh-codex-select-field', title: '沙箱（随 turn 生效）' },
+              { className: 'dsh-native-codex-cli-select-field', title: '沙箱（随 turn 生效）' },
               h('span', null, '沙箱'),
               h(
                 'select',
                 {
-                  className: 'dsh-codex-select',
+                  className: 'dsh-native-codex-cli-select',
                   value: sandbox || 'workspace-write',
                   onChange: (event) => choose({ sandbox: event.target.value }),
                 },
@@ -1528,11 +1528,11 @@ window.__ModuleLoader__.load({
           ),
           h(
             'div',
-            { className: 'dsh-codex-composer-actions' },
+            { className: 'dsh-native-codex-cli-composer-actions' },
             // Attach button, mirroring the native composer's "+" seat.
             h('button', {
               type: 'button',
-              className: 'dsh-codex-attach',
+              className: 'dsh-native-codex-cli-attach',
               title: '添加图片（也可以直接粘贴到输入框）',
               onClick: () => fileInput.current?.click?.(),
             }, '＋'),
@@ -1547,9 +1547,9 @@ window.__ModuleLoader__.load({
                 event.target.value = ''
               },
             }),
-            h('span', { className: 'dsh-codex-muted' }, running ? '执行中' : 'Enter 发送'),
-            running ? h('button', { type: 'button', className: 'dsh-codex-danger', disabled: interrupting, onClick: () => interrupt({ sessionId, threadId }) }, interrupting ? '正在停止…' : '停止') : null,
-            h('button', { type: 'button', className: 'dsh-codex-primary', disabled: sending || (!draft.trim() && images.length === 0), onClick: submit }, sending ? '发送中…' : '发送给 Codex'),
+            h('span', { className: 'dsh-native-codex-cli-muted' }, running ? '执行中' : 'Enter 发送'),
+            running ? h('button', { type: 'button', className: 'dsh-native-codex-cli-danger', disabled: interrupting, onClick: () => interrupt({ sessionId, threadId }) }, interrupting ? '正在停止…' : '停止') : null,
+            h('button', { type: 'button', className: 'dsh-native-codex-cli-primary', disabled: sending || (!draft.trim() && images.length === 0), onClick: submit }, sending ? '发送中…' : '发送给 Codex'),
           ),
         ),
       )
@@ -1588,40 +1588,40 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-newthread' },
-        h('div', { className: 'dsh-codex-field' },
+        { className: 'dsh-native-codex-cli-newthread' },
+        h('div', { className: 'dsh-native-codex-cli-field' },
           h('label', null, '工作目录'),
-          h('div', { className: 'dsh-codex-field-row' },
-            h('input', { className: 'dsh-codex-input', value: cwd, placeholder: 'C:\\path\\to\\project', onChange: (event) => setCwd(event.target.value) }),
+          h('div', { className: 'dsh-native-codex-cli-field-row' },
+            h('input', { className: 'dsh-native-codex-cli-input', value: cwd, placeholder: 'C:\\path\\to\\project', onChange: (event) => setCwd(event.target.value) }),
             h('button', { type: 'button', onClick: pickDirectory }, '选择…'),
           )),
-        h('div', { className: 'dsh-codex-field' },
+        h('div', { className: 'dsh-native-codex-cli-field' },
           h('label', null, '模型'),
-          h('select', { className: 'dsh-codex-input', value: model, onChange: (event) => setModel(event.target.value) },
+          h('select', { className: 'dsh-native-codex-cli-input', value: model, onChange: (event) => setModel(event.target.value) },
             h('option', { value: '' }, '（Codex 默认）'),
             models.map((entry) => h('option', { key: entry.id, value: entry.id }, `${entry.displayName || entry.id}${entry.isDefault ? ' · 默认' : ''}`)),
           )),
-        h('div', { className: 'dsh-codex-field' },
+        h('div', { className: 'dsh-native-codex-cli-field' },
           h('label', null, '权限策略'),
-          h('select', { className: 'dsh-codex-input', value: approvalPolicy, onChange: (event) => setApprovalPolicy(event.target.value) },
+          h('select', { className: 'dsh-native-codex-cli-input', value: approvalPolicy, onChange: (event) => setApprovalPolicy(event.target.value) },
             h('option', { value: 'on-request' }, '按需询问'),
             h('option', { value: 'untrusted' }, '仅可信命令免问'),
             h('option', { value: 'never' }, '从不询问'),
           )),
-        h('div', { className: 'dsh-codex-field' },
+        h('div', { className: 'dsh-native-codex-cli-field' },
           h('label', null, '沙箱'),
-          h('select', { className: 'dsh-codex-input', value: sandbox, onChange: (event) => setSandbox(event.target.value) },
+          h('select', { className: 'dsh-native-codex-cli-input', value: sandbox, onChange: (event) => setSandbox(event.target.value) },
             h('option', { value: 'read-only' }, '只读'),
             h('option', { value: 'workspace-write' }, '可写工作区'),
             h('option', { value: 'danger-full-access' }, '完全访问'),
           )),
         profiles.length
-          ? h('div', { className: 'dsh-codex-muted' }, `可用权限配置：${profiles.map((profile) => profile.id).join('、')}`)
+          ? h('div', { className: 'dsh-native-codex-cli-muted' }, `可用权限配置：${profiles.map((profile) => profile.id).join('、')}`)
           : null,
-        h('div', { className: 'dsh-codex-approval-actions' },
+        h('div', { className: 'dsh-native-codex-cli-approval-actions' },
           h('button', {
             type: 'button',
-            className: 'dsh-codex-primary',
+            className: 'dsh-native-codex-cli-primary',
             disabled: creating,
             onClick: async () => {
               const threadId = await createThread({ cwd, model, approvalPolicy, sandbox, sessionId })
@@ -1647,12 +1647,12 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-threadlist' },
+        { className: 'dsh-native-codex-cli-threadlist' },
         h(
           'div',
-          { className: 'dsh-codex-threadlist-head' },
+          { className: 'dsh-native-codex-cli-threadlist-head' },
           h('input', {
-            className: 'dsh-codex-input',
+            className: 'dsh-native-codex-cli-input',
             placeholder: '搜索 Codex 线程…',
             value: search,
             onChange: (event) => setSearch(event.target.value),
@@ -1661,35 +1661,35 @@ window.__ModuleLoader__.load({
             },
           }),
           h('button', { type: 'button', onClick: () => refreshThreadList({ searchTerm: search }) }, '刷新'),
-          h('button', { type: 'button', className: 'dsh-codex-primary', onClick: () => setShowNew(!showNew) }, showNew ? '收起' : '新任务'),
+          h('button', { type: 'button', className: 'dsh-native-codex-cli-primary', onClick: () => setShowNew(!showNew) }, showNew ? '收起' : '新任务'),
         ),
         showNew ? h(NewThreadForm, { sessionId, onCreated: (id, cwd) => { setShowNew(false); onOpen(id, { ensureSession: true, cwd }) } }) : null,
         loading ? h(Spinner, { label: '加载线程列表…' }) : null,
         threadList.length === 0 && !loading ? h(Empty, { text: 'Codex 里还没有线程。点「新任务」创建第一个。' }) : null,
         h(
           'ul',
-          { className: 'dsh-codex-threaditems' },
+          { className: 'dsh-native-codex-cli-threaditems' },
           threadList.map((thread) => h(
             'li',
             {
               key: thread.threadId,
-              className: `dsh-codex-threaditem${selectedId === thread.threadId ? ' dsh-codex-threaditem-active' : ''}`,
+              className: `dsh-native-codex-cli-threaditem${selectedId === thread.threadId ? ' dsh-native-codex-cli-threaditem-active' : ''}`,
               onClick: () => onOpen(thread.threadId),
             },
-            h('div', { className: 'dsh-codex-threaditem-title' }, thread.name || thread.preview || thread.threadId.slice(0, 8)),
+            h('div', { className: 'dsh-native-codex-cli-threaditem-title' }, thread.name || thread.preview || thread.threadId.slice(0, 8)),
             h(
               'div',
-              { className: 'dsh-codex-threaditem-meta' },
+              { className: 'dsh-native-codex-cli-threaditem-meta' },
               h('span', null, thread.cwd ? shortPath(asText(thread.cwd)) : ''),
               h('span', null, thread.updatedAt ? new Date(thread.updatedAt).toLocaleString() : ''),
-              boundThreadIds.has(thread.threadId) ? h('span', { className: 'dsh-codex-badge dsh-codex-badge-ok' }, '已绑定会话') : null,
+              boundThreadIds.has(thread.threadId) ? h('span', { className: 'dsh-native-codex-cli-badge dsh-native-codex-cli-badge-ok' }, '已绑定会话') : null,
               // Recovery affordance: a thread whose binding was dropped by the
               // earlier delete-on-detach behaviour is still alive in Codex, and
               // this is how it gets attached to the session again.
               bindSessionId && !boundThreadIds.has(thread.threadId)
                 ? h('button', {
                   type: 'button',
-                  className: 'dsh-codex-link',
+                  className: 'dsh-native-codex-cli-link',
                   onClick: (event) => {
                     event.stopPropagation()
                     onBind?.(thread.threadId, thread.cwd)
@@ -1738,19 +1738,19 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-panel' },
+        { className: 'dsh-native-codex-cli-panel' },
         h(
           'div',
-          { className: 'dsh-codex-panel-head' },
-          h('div', { className: 'dsh-codex-panel-title' },
+          { className: 'dsh-native-codex-cli-panel-head' },
+          h('div', { className: 'dsh-native-codex-cli-panel-title' },
             h(CodexIcon, { size: 18, active: true }),
             h('span', null, 'Codex'),
             h(StatusDot, { status: connection, label: `事件流：${connection}` }),
-            appServer?.running ? h('span', { className: 'dsh-codex-muted' }, `pid ${appServer.pid ?? '-'}`) : h('span', { className: 'dsh-codex-muted' }, 'Codex 未启动'),
+            appServer?.running ? h('span', { className: 'dsh-native-codex-cli-muted' }, `pid ${appServer.pid ?? '-'}`) : h('span', { className: 'dsh-native-codex-cli-muted' }, 'Codex 未启动'),
           ),
           h(
             'div',
-            { className: 'dsh-codex-panel-actions' },
+            { className: 'dsh-native-codex-cli-panel-actions' },
             h('button', { type: 'button', onClick: () => setShowList(!showList) }, showList ? '隐藏线程' : '线程列表'),
             h('button', { type: 'button', onClick: () => { void refreshSnapshot(); void refreshThreadList({}) } }, '刷新'),
             h('button', {
@@ -1766,10 +1766,10 @@ window.__ModuleLoader__.load({
             }, '重启 Codex'),
           ),
         ),
-        error ? h('div', { className: 'dsh-codex-error dsh-codex-error-bar' }, error) : null,
+        error ? h('div', { className: 'dsh-native-codex-cli-error dsh-native-codex-cli-error-bar' }, error) : null,
         h(
           'div',
-          { className: 'dsh-codex-panel-body' },
+          { className: 'dsh-native-codex-cli-panel-body' },
           showList
             ? guard('threadlist', h(ThreadList, {
               sessionId: null,
@@ -1791,10 +1791,10 @@ window.__ModuleLoader__.load({
             : null,
           h(
             'div',
-            { className: 'dsh-codex-panel-main' },
+            { className: 'dsh-native-codex-cli-panel-main' },
             selectedThreadId
-              ? h('div', { className: 'dsh-codex-thread-head' },
-                h('span', { className: 'dsh-codex-mono' }, selectedThreadId),
+              ? h('div', { className: 'dsh-native-codex-cli-thread-head' },
+                h('span', { className: 'dsh-native-codex-cli-mono' }, selectedThreadId),
                 h('button', {
                   type: 'button',
                   onClick: async () => {
@@ -1830,18 +1830,18 @@ window.__ModuleLoader__.load({
       if (!threadId) {
         return h(
           'div',
-          { className: 'dsh-codex-sessionview' },
+          { className: 'dsh-native-codex-cli-sessionview' },
           h(Empty, { text: '这个会话还没有绑定 Codex 线程。' }),
           h(NewThreadForm, { sessionId, onCreated: (id) => { void openThread(id, sessionId) } }),
         )
       }
       return h(
         'div',
-        { className: 'dsh-codex-sessionview' },
+        { className: 'dsh-native-codex-cli-sessionview' },
         h(
           'div',
-          { className: 'dsh-codex-sessionview-head' },
-          h('span', { className: 'dsh-codex-muted' }, `Codex 线程 ${threadId.slice(0, 8)}`),
+          { className: 'dsh-native-codex-cli-sessionview-head' },
+          h('span', { className: 'dsh-native-codex-cli-muted' }, `Codex 线程 ${threadId.slice(0, 8)}`),
           h('button', { type: 'button', onClick: () => detachSession(sessionId) }, '解除绑定，交还 DSH'),
         ),
         h(Transcript, { threadId, sessionId }),
@@ -1880,15 +1880,15 @@ window.__ModuleLoader__.load({
 
       return h(
         'div',
-        { className: 'dsh-codex-dock' },
+        { className: 'dsh-native-codex-cli-dock' },
         h(
           'div',
-          { className: 'dsh-codex-dock-head' },
+          { className: 'dsh-native-codex-cli-dock-head' },
           h(CodexIcon, { size: 13, active: true }),
           h('span', null, 'Codex 对话'),
-          h('span', { className: 'dsh-codex-mono' }, threadId.slice(0, 8)),
-          h('button', { type: 'button', className: 'dsh-codex-link', onClick: () => setCollapsed(!collapsed) }, collapsed ? '展开' : '收起'),
-          h('button', { type: 'button', className: 'dsh-codex-link', onClick: () => detachSession(sessionId) }, '交还 DSH'),
+          h('span', { className: 'dsh-native-codex-cli-mono' }, threadId.slice(0, 8)),
+          h('button', { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => setCollapsed(!collapsed) }, collapsed ? '展开' : '收起'),
+          h('button', { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => detachSession(sessionId) }, '交还 DSH'),
         ),
         // The conversation's context, so the session is not just a bare input
         // box: which directory Codex is rooted at, and under which settings.
@@ -1896,7 +1896,7 @@ window.__ModuleLoader__.load({
           ? null
           : h(
             'div',
-            { className: 'dsh-codex-dock-context' },
+            { className: 'dsh-native-codex-cli-dock-context' },
             h('span', null, `目录 ${asText(binding?.cwd ?? thread?.cwd, '未指定')}`),
             h('span', null, `模型 ${asText(binding?.model ?? thread?.model, 'Codex 默认')}`),
             h('span', null, `审批 ${asText(binding?.approvalPolicy, 'on-request')}`),
@@ -1915,29 +1915,29 @@ window.__ModuleLoader__.load({
       if (!sessionId || !binding?.threadId) return null
       return h(
         'div',
-        { className: 'dsh-codex-takeover' },
+        { className: 'dsh-native-codex-cli-takeover' },
         h(
           'div',
-          { className: 'dsh-codex-takeover-banner' },
+          { className: 'dsh-native-codex-cli-takeover-banner' },
           h(CodexIcon, { size: 14, active: true }),
           h('span', null, '本会话由 Codex 接管'),
-          h('span', { className: 'dsh-codex-mono' }, binding.threadId.slice(0, 8)),
+          h('span', { className: 'dsh-native-codex-cli-mono' }, binding.threadId.slice(0, 8)),
           // Direct controls, so a binding can be changed or dropped without the
           // "hand back, then create a thread somewhere else" detour.
           h('button', {
             type: 'button',
-            className: 'dsh-codex-link',
+            className: 'dsh-native-codex-cli-link',
             title: '给这个会话换一条新的 Codex 线程',
             disabled: creating,
             onClick: () => void newThreadForSession(sessionId),
           }, creating ? '创建中…' : '新建线程'),
           h('button', {
             type: 'button',
-            className: 'dsh-codex-link',
+            className: 'dsh-native-codex-cli-link',
             title: '彻底解除绑定（不保留线程关联，下次交给 Codex 会开始新对话）',
             onClick: () => void unbindSession(sessionId),
           }, '解除绑定'),
-          h('button', { type: 'button', className: 'dsh-codex-link', onClick: () => detachSession(sessionId) }, '交还 DSH'),
+          h('button', { type: 'button', className: 'dsh-native-codex-cli-link', onClick: () => detachSession(sessionId) }, '交还 DSH'),
         ),
         h(Composer, { sessionId, threadId: binding.threadId, compact: true }),
       )
@@ -2050,7 +2050,7 @@ window.__ModuleLoader__.load({
         'button',
         {
           type: 'button',
-          className: `dsh-codex-inline-action${mentionsCodex ? ' dsh-codex-inline-action-hot' : ''}`,
+          className: `dsh-native-codex-cli-inline-action${mentionsCodex ? ' dsh-native-codex-cli-inline-action-hot' : ''}`,
           title: mentionsCodex ? '把这条消息直接交给 Codex' : '把当前输入框内容交给 Codex（输入 @codex 可高亮，不分大小写）',
           onClick: handOff,
         },
@@ -2067,7 +2067,7 @@ window.__ModuleLoader__.load({
    bg-layer-1/2, border-l1, brand-primary, state-*), NOT the --dsh-* names this
    stylesheet was first written against — so every var() below was silently
    falling back to a hard-coded colour and never matched the active theme. */
-.dsh-codex-panel,.dsh-codex-sessionview,.dsh-codex-takeover,.dsh-codex-inline-action,.dsh-codex-threadlist,.dsh-codex-transcript-wrap,.dsh-codex-approval,.dsh-codex-dock{
+.dsh-native-codex-cli-panel,.dsh-native-codex-cli-sessionview,.dsh-native-codex-cli-takeover,.dsh-native-codex-cli-inline-action,.dsh-native-codex-cli-threadlist,.dsh-native-codex-cli-transcript-wrap,.dsh-native-codex-cli-approval,.dsh-native-codex-cli-dock{
   --dsh-text-primary: var(--dsw-alias-label-primary);
   --dsh-border: var(--dsw-alias-border-l1);
   --dsh-hover: var(--dsw-alias-bg-layer-2);
@@ -2086,83 +2086,83 @@ window.__ModuleLoader__.load({
   --dsh-warn: var(--dsw-alias-state-warn-primary);
   --dsh-muted: var(--dsw-alias-label-secondary);
 }
-.dsh-codex-panel{display:flex;flex-direction:column;height:100%;min-height:0;color:var(--dsh-text-primary,inherit)}
-.dsh-codex-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.25))}
-.dsh-codex-panel-title{display:flex;align-items:center;gap:8px;font-weight:600}
-.dsh-codex-panel-actions{display:flex;gap:6px;flex-wrap:wrap}
-.dsh-codex-panel-body{display:flex;flex:1;min-height:0}
-.dsh-codex-panel-main{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
-.dsh-codex-threadlist{width:290px;min-width:220px;border-right:1px solid var(--dsh-border,rgba(128,128,128,.25));display:flex;flex-direction:column;min-height:0;overflow-y:auto}
-.dsh-codex-threadlist-head{display:flex;gap:6px;padding:8px;flex-wrap:wrap}
-.dsh-codex-threaditems{list-style:none;margin:0;padding:0}
-.dsh-codex-threaditem{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.12))}
-.dsh-codex-threaditem:hover{background:var(--dsh-hover,rgba(128,128,128,.12))}
-.dsh-codex-threaditem-active{background:var(--dsh-selected,rgba(128,128,128,.2))}
-.dsh-codex-threaditem-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dsh-codex-threaditem-meta{display:flex;gap:8px;font-size:11px;opacity:.65;margin-top:3px;flex-wrap:wrap}
-.dsh-codex-thread-head{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.15));font-size:11px}
-.dsh-codex-transcript-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
-.dsh-codex-transcript{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0}
-.dsh-codex-turn{display:flex;flex-direction:column;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--dsh-border,rgba(128,128,128,.2))}
-.dsh-codex-turn-foot{display:flex;gap:8px;align-items:center;opacity:.75;font-size:11px}
-.dsh-codex-row{display:flex}
-.dsh-codex-row-user{justify-content:flex-end}
-.dsh-codex-bubble{padding:9px 12px;border-radius:10px;background:var(--dsh-surface-2,rgba(128,128,128,.14));max-width:min(760px,88%)}
-.dsh-codex-bubble-user{background:var(--dsh-accent-soft,rgba(80,140,255,.2))}
-.dsh-codex-text{white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.55}
-.dsh-codex-code,.dsh-codex-pre{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;background:var(--dsh-code-bg,rgba(0,0,0,.28));border-radius:8px;padding:8px 10px;margin:6px 0;max-height:420px;overflow:auto}
-.dsh-codex-pre-cmd{color:var(--dsh-code-accent,#7ec8ff)}
-.dsh-codex-inline-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--dsh-code-bg,rgba(0,0,0,.28));border-radius:4px;padding:1px 4px}
-.dsh-codex-card{border:1px solid var(--dsh-border,rgba(128,128,128,.28));border-radius:10px;padding:9px 11px;font-size:12px;background:var(--dsh-surface-1,rgba(128,128,128,.07))}
-.dsh-codex-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-.dsh-codex-card-title{font-weight:600;margin-bottom:4px}
-.dsh-codex-tool-kind{font-weight:600;font-size:12px}
-.dsh-codex-reasoning summary{cursor:pointer;opacity:.8}
-.dsh-codex-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,var(--dsh-muted,currentColor) 22%,transparent)}
-.dsh-codex-badge-ok{background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#3cb46e) 30%,transparent)}
-.dsh-codex-badge-error{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 32%,transparent)}
-.dsh-codex-badge-warn{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#e6aa32) 32%,transparent)}
-.dsh-codex-badge-running{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 32%,transparent)}
-.dsh-codex-badge-off{background:color-mix(in srgb,var(--dsh-muted,currentColor) 18%,transparent)}
-.dsh-codex-muted{opacity:.62;font-size:11px}
-.dsh-codex-mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
-.dsh-codex-cwd{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dsh-codex-filelist{list-style:none;margin:4px 0;padding:0;display:flex;flex-direction:column;gap:2px}
-.dsh-codex-filelist li{display:flex;gap:8px}
-.dsh-codex-filekind{opacity:.7;min-width:52px}
-.dsh-codex-filepath{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
-.dsh-codex-link{background:none;border:none;color:var(--dsh-link,#6cb2ff);cursor:pointer;padding:2px 0;font-size:11px;text-align:left}
-.dsh-codex-error{color:var(--dsw-alias-state-error-primary,#ff8a8a);font-size:12px;margin-top:6px}
-.dsh-codex-error-bar{padding:6px 14px;border-bottom:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 40%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 14%,transparent)}
-.dsh-codex-notice{font-size:12px;padding:6px 9px;border-radius:8px;background:var(--dsh-surface-2,rgba(128,128,128,.12))}
-.dsh-codex-notice-error{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 18%,transparent)}
-.dsh-codex-notice-warning{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#e6aa32) 18%,transparent)}
-.dsh-codex-empty{padding:20px;opacity:.6;font-size:13px;text-align:center}
-.dsh-codex-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#888}
-.dsh-codex-dot-ok{background:#3cb46e}
-.dsh-codex-dot-warn{background:#e6aa32}
-.dsh-codex-dot-off{background:#888}
-.dsh-codex-spinner{opacity:.6;font-size:11px}
-.dsh-codex-composer{border-top:1px solid var(--dsh-border,rgba(128,128,128,.25));padding:10px 12px;display:flex;flex-direction:column;gap:6px}
-.dsh-codex-textarea,.dsh-codex-input{width:100%;box-sizing:border-box;background:var(--dsh-input-bg,rgba(128,128,128,.12));color:inherit;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit;resize:vertical}
-.dsh-codex-composer-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.dsh-codex-composer-selects{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dsh-codex-select-field{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--dsw-alias-label-secondary,inherit)}
-.dsh-codex-select{background:var(--dsh-input-bg,rgba(128,128,128,.12));color:var(--dsh-text-primary,inherit);border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:6px;padding:2px 4px;font-size:11px;max-width:190px}
-.dsh-codex-dock{border-top:1px solid var(--dsh-border,rgba(128,128,128,.25));display:flex;flex-direction:column;min-height:0}
-.dsh-codex-dock .dsh-codex-transcript{max-height:28vh;padding:0 12px 6px}
-.dsh-codex-dock-head{display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:11px}
-.dsh-codex-dock-context{display:flex;gap:12px;flex-wrap:wrap;padding:0 12px 4px;font-size:11px;color:var(--dsw-alias-label-secondary,inherit)}
-.dsh-codex-dock-body{display:flex;flex-direction:column;gap:10px;padding:0 12px 8px}
-.dsh-codex-composer-actions{display:flex;gap:6px}
-.dsh-codex-attachments{display:flex;gap:6px;flex-wrap:wrap;padding:2px 0 4px}
-.dsh-codex-attachment{position:relative;display:inline-block;line-height:0}
-.dsh-codex-attachment img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.35))}
-.dsh-codex-attachment-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;padding:0!important;border-radius:999px!important;font-size:12px;line-height:16px;background:var(--dsw-alias-bg-overlay,rgba(0,0,0,.6))!important;color:var(--dsw-alias-label-primary,inherit)!important}
-.dsh-codex-attach{font-size:14px!important;line-height:1!important;padding:2px 8px!important;border-radius:999px!important}
+.dsh-native-codex-cli-panel{display:flex;flex-direction:column;height:100%;min-height:0;color:var(--dsh-text-primary,inherit)}
+.dsh-native-codex-cli-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.25))}
+.dsh-native-codex-cli-panel-title{display:flex;align-items:center;gap:8px;font-weight:600}
+.dsh-native-codex-cli-panel-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dsh-native-codex-cli-panel-body{display:flex;flex:1;min-height:0}
+.dsh-native-codex-cli-panel-main{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
+.dsh-native-codex-cli-threadlist{width:290px;min-width:220px;border-right:1px solid var(--dsh-border,rgba(128,128,128,.25));display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+.dsh-native-codex-cli-threadlist-head{display:flex;gap:6px;padding:8px;flex-wrap:wrap}
+.dsh-native-codex-cli-threaditems{list-style:none;margin:0;padding:0}
+.dsh-native-codex-cli-threaditem{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.12))}
+.dsh-native-codex-cli-threaditem:hover{background:var(--dsh-hover,rgba(128,128,128,.12))}
+.dsh-native-codex-cli-threaditem-active{background:var(--dsh-selected,rgba(128,128,128,.2))}
+.dsh-native-codex-cli-threaditem-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsh-native-codex-cli-threaditem-meta{display:flex;gap:8px;font-size:11px;opacity:.65;margin-top:3px;flex-wrap:wrap}
+.dsh-native-codex-cli-thread-head{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.15));font-size:11px}
+.dsh-native-codex-cli-transcript-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+.dsh-native-codex-cli-transcript{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.dsh-native-codex-cli-turn{display:flex;flex-direction:column;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--dsh-border,rgba(128,128,128,.2))}
+.dsh-native-codex-cli-turn-foot{display:flex;gap:8px;align-items:center;opacity:.75;font-size:11px}
+.dsh-native-codex-cli-row{display:flex}
+.dsh-native-codex-cli-row-user{justify-content:flex-end}
+.dsh-native-codex-cli-bubble{padding:9px 12px;border-radius:10px;background:var(--dsh-surface-2,rgba(128,128,128,.14));max-width:min(760px,88%)}
+.dsh-native-codex-cli-bubble-user{background:var(--dsh-accent-soft,rgba(80,140,255,.2))}
+.dsh-native-codex-cli-text{white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.55}
+.dsh-native-codex-cli-code,.dsh-native-codex-cli-pre{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;background:var(--dsh-code-bg,rgba(0,0,0,.28));border-radius:8px;padding:8px 10px;margin:6px 0;max-height:420px;overflow:auto}
+.dsh-native-codex-cli-pre-cmd{color:var(--dsh-code-accent,#7ec8ff)}
+.dsh-native-codex-cli-inline-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--dsh-code-bg,rgba(0,0,0,.28));border-radius:4px;padding:1px 4px}
+.dsh-native-codex-cli-card{border:1px solid var(--dsh-border,rgba(128,128,128,.28));border-radius:10px;padding:9px 11px;font-size:12px;background:var(--dsh-surface-1,rgba(128,128,128,.07))}
+.dsh-native-codex-cli-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.dsh-native-codex-cli-card-title{font-weight:600;margin-bottom:4px}
+.dsh-native-codex-cli-tool-kind{font-weight:600;font-size:12px}
+.dsh-native-codex-cli-reasoning summary{cursor:pointer;opacity:.8}
+.dsh-native-codex-cli-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,var(--dsh-muted,currentColor) 22%,transparent)}
+.dsh-native-codex-cli-badge-ok{background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#3cb46e) 30%,transparent)}
+.dsh-native-codex-cli-badge-error{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 32%,transparent)}
+.dsh-native-codex-cli-badge-warn{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#e6aa32) 32%,transparent)}
+.dsh-native-codex-cli-badge-running{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 32%,transparent)}
+.dsh-native-codex-cli-badge-off{background:color-mix(in srgb,var(--dsh-muted,currentColor) 18%,transparent)}
+.dsh-native-codex-cli-muted{opacity:.62;font-size:11px}
+.dsh-native-codex-cli-mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
+.dsh-native-codex-cli-cwd{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsh-native-codex-cli-filelist{list-style:none;margin:4px 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.dsh-native-codex-cli-filelist li{display:flex;gap:8px}
+.dsh-native-codex-cli-filekind{opacity:.7;min-width:52px}
+.dsh-native-codex-cli-filepath{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.dsh-native-codex-cli-link{background:none;border:none;color:var(--dsh-link,#6cb2ff);cursor:pointer;padding:2px 0;font-size:11px;text-align:left}
+.dsh-native-codex-cli-error{color:var(--dsw-alias-state-error-primary,#ff8a8a);font-size:12px;margin-top:6px}
+.dsh-native-codex-cli-error-bar{padding:6px 14px;border-bottom:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 40%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 14%,transparent)}
+.dsh-native-codex-cli-notice{font-size:12px;padding:6px 9px;border-radius:8px;background:var(--dsh-surface-2,rgba(128,128,128,.12))}
+.dsh-native-codex-cli-notice-error{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 18%,transparent)}
+.dsh-native-codex-cli-notice-warning{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#e6aa32) 18%,transparent)}
+.dsh-native-codex-cli-empty{padding:20px;opacity:.6;font-size:13px;text-align:center}
+.dsh-native-codex-cli-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#888}
+.dsh-native-codex-cli-dot-ok{background:#3cb46e}
+.dsh-native-codex-cli-dot-warn{background:#e6aa32}
+.dsh-native-codex-cli-dot-off{background:#888}
+.dsh-native-codex-cli-spinner{opacity:.6;font-size:11px}
+.dsh-native-codex-cli-composer{border-top:1px solid var(--dsh-border,rgba(128,128,128,.25));padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.dsh-native-codex-cli-textarea,.dsh-native-codex-cli-input{width:100%;box-sizing:border-box;background:var(--dsh-input-bg,rgba(128,128,128,.12));color:inherit;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit;resize:vertical}
+.dsh-native-codex-cli-composer-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.dsh-native-codex-cli-composer-selects{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dsh-native-codex-cli-select-field{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--dsw-alias-label-secondary,inherit)}
+.dsh-native-codex-cli-select{background:var(--dsh-input-bg,rgba(128,128,128,.12));color:var(--dsh-text-primary,inherit);border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:6px;padding:2px 4px;font-size:11px;max-width:190px}
+.dsh-native-codex-cli-dock{border-top:1px solid var(--dsh-border,rgba(128,128,128,.25));display:flex;flex-direction:column;min-height:0}
+.dsh-native-codex-cli-dock .dsh-native-codex-cli-transcript{max-height:28vh;padding:0 12px 6px}
+.dsh-native-codex-cli-dock-head{display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:11px}
+.dsh-native-codex-cli-dock-context{display:flex;gap:12px;flex-wrap:wrap;padding:0 12px 4px;font-size:11px;color:var(--dsw-alias-label-secondary,inherit)}
+.dsh-native-codex-cli-dock-body{display:flex;flex-direction:column;gap:10px;padding:0 12px 8px}
+.dsh-native-codex-cli-composer-actions{display:flex;gap:6px}
+.dsh-native-codex-cli-attachments{display:flex;gap:6px;flex-wrap:wrap;padding:2px 0 4px}
+.dsh-native-codex-cli-attachment{position:relative;display:inline-block;line-height:0}
+.dsh-native-codex-cli-attachment img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.35))}
+.dsh-native-codex-cli-attachment-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;padding:0!important;border-radius:999px!important;font-size:12px;line-height:16px;background:var(--dsw-alias-bg-overlay,rgba(0,0,0,.6))!important;color:var(--dsw-alias-label-primary,inherit)!important}
+.dsh-native-codex-cli-attach{font-size:14px!important;line-height:1!important;padding:2px 8px!important;border-radius:999px!important}
 /* Image thumbnails inside a user turn, and the click-to-enlarge overlay. */
-.dsh-codex-bubble-images{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.dsh-codex-thumb{
+.dsh-native-codex-cli-bubble-images{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.dsh-native-codex-cli-thumb{
   display:block;
   max-width:190px;
   max-height:190px;
@@ -2171,7 +2171,7 @@ window.__ModuleLoader__.load({
   border:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.35));
   background:color-mix(in srgb,currentColor 6%,transparent);
 }
-.dsh-codex-lightbox{
+.dsh-native-codex-cli-lightbox{
   position:fixed;
   inset:0;
   z-index:9999;
@@ -2182,7 +2182,7 @@ window.__ModuleLoader__.load({
   background:rgba(0,0,0,.78);
   cursor:zoom-out;
 }
-.dsh-codex-lightbox img{
+.dsh-native-codex-cli-lightbox img{
   max-width:100%;
   max-height:94vh;
   object-fit:contain;
@@ -2193,47 +2193,47 @@ window.__ModuleLoader__.load({
 /* --- rendered Markdown -------------------------------------------------------
    Codex answers in Markdown, so the bubble styles real block elements now:
    paragraphs, headings, lists, quotes, rules and links. */
-.dsh-codex-bubble{font-size:13px;line-height:1.58;white-space:normal;word-break:break-word}
-.dsh-codex-p{margin:0 0 8px;white-space:pre-wrap}
-.dsh-codex-p:last-child{margin-bottom:0}
-.dsh-codex-h{margin:10px 0 6px;font-weight:600;line-height:1.3}
-h3.dsh-codex-h{font-size:15px}
-h4.dsh-codex-h{font-size:14px}
-h5.dsh-codex-h,h6.dsh-codex-h{font-size:13px}
-.dsh-codex-list{margin:4px 0 8px;padding-left:20px}
-.dsh-codex-list li{margin:2px 0}
-.dsh-codex-bubble blockquote{
+.dsh-native-codex-cli-bubble{font-size:13px;line-height:1.58;white-space:normal;word-break:break-word}
+.dsh-native-codex-cli-p{margin:0 0 8px;white-space:pre-wrap}
+.dsh-native-codex-cli-p:last-child{margin-bottom:0}
+.dsh-native-codex-cli-h{margin:10px 0 6px;font-weight:600;line-height:1.3}
+h3.dsh-native-codex-cli-h{font-size:15px}
+h4.dsh-native-codex-cli-h{font-size:14px}
+h5.dsh-native-codex-cli-h,h6.dsh-native-codex-cli-h{font-size:13px}
+.dsh-native-codex-cli-list{margin:4px 0 8px;padding-left:20px}
+.dsh-native-codex-cli-list li{margin:2px 0}
+.dsh-native-codex-cli-bubble blockquote{
   margin:6px 0;
   padding:2px 10px;
   border-left:3px solid var(--dsw-alias-border-l2,rgba(128,128,128,.5));
   color:var(--dsw-alias-label-secondary,inherit);
 }
-.dsh-codex-bubble hr{border:none;border-top:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.3));margin:10px 0}
-.dsh-codex-bubble a{color:var(--dsw-alias-brand-primary,inherit);text-decoration:underline}
-.dsh-codex-bubble strong{font-weight:600}
-.dsh-codex-bubble em{font-style:italic}
-.dsh-codex-panel button,.dsh-codex-takeover button,.dsh-codex-sessionview button{cursor:pointer;background:var(--dsh-button-bg,rgba(128,128,128,.18));color:inherit;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:7px;padding:4px 9px;font-size:12px}
-.dsh-codex-panel button:disabled,.dsh-codex-takeover button:disabled{opacity:.5;cursor:default}
-.dsh-codex-primary{background:var(--dsh-accent,rgba(80,140,255,.55))!important;border-color:transparent!important}
-.dsh-codex-danger{background:rgba(220,70,70,.35)!important}
-.dsh-codex-approval-dock{padding:0 14px 10px;display:flex;flex-direction:column;gap:8px}
-.dsh-codex-approval{border:1px solid rgba(230,170,50,.5);background:rgba(230,170,50,.1);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
-.dsh-codex-approval-title{font-weight:600;font-size:13px}
-.dsh-codex-approval-actions{display:flex;gap:6px;flex-wrap:wrap}
-.dsh-codex-question{display:flex;flex-direction:column;gap:4px;margin:4px 0}
-.dsh-codex-question-header{font-weight:600;font-size:12px}
-.dsh-codex-question-text{font-size:12px;opacity:.85}
-.dsh-codex-option{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}
-.dsh-codex-newthread{padding:10px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.25))}
-.dsh-codex-field{display:flex;flex-direction:column;gap:3px}
-.dsh-codex-field label{font-size:11px;opacity:.7}
-.dsh-codex-field-row{display:flex;gap:6px}
-.dsh-codex-sessionview{display:flex;flex-direction:column;height:100%;min-height:0}
-.dsh-codex-sessionview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;font-size:11px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.15))}
-.dsh-codex-takeover{display:flex;flex-direction:column;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:12px;overflow:hidden}
-.dsh-codex-takeover-banner{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:11px;background:rgba(80,140,255,.14)}
-.dsh-codex-inline-action{display:inline-flex;align-items:center;gap:4px}
-.dsh-codex-inline-action-hot{background:var(--dsh-accent,rgba(80,140,255,.55))!important;border-color:transparent!important}
+.dsh-native-codex-cli-bubble hr{border:none;border-top:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.3));margin:10px 0}
+.dsh-native-codex-cli-bubble a{color:var(--dsw-alias-brand-primary,inherit);text-decoration:underline}
+.dsh-native-codex-cli-bubble strong{font-weight:600}
+.dsh-native-codex-cli-bubble em{font-style:italic}
+.dsh-native-codex-cli-panel button,.dsh-native-codex-cli-takeover button,.dsh-native-codex-cli-sessionview button{cursor:pointer;background:var(--dsh-button-bg,rgba(128,128,128,.18));color:inherit;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:7px;padding:4px 9px;font-size:12px}
+.dsh-native-codex-cli-panel button:disabled,.dsh-native-codex-cli-takeover button:disabled{opacity:.5;cursor:default}
+.dsh-native-codex-cli-primary{background:var(--dsh-accent,rgba(80,140,255,.55))!important;border-color:transparent!important}
+.dsh-native-codex-cli-danger{background:rgba(220,70,70,.35)!important}
+.dsh-native-codex-cli-approval-dock{padding:0 14px 10px;display:flex;flex-direction:column;gap:8px}
+.dsh-native-codex-cli-approval{border:1px solid rgba(230,170,50,.5);background:rgba(230,170,50,.1);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.dsh-native-codex-cli-approval-title{font-weight:600;font-size:13px}
+.dsh-native-codex-cli-approval-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dsh-native-codex-cli-question{display:flex;flex-direction:column;gap:4px;margin:4px 0}
+.dsh-native-codex-cli-question-header{font-weight:600;font-size:12px}
+.dsh-native-codex-cli-question-text{font-size:12px;opacity:.85}
+.dsh-native-codex-cli-option{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}
+.dsh-native-codex-cli-newthread{padding:10px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.25))}
+.dsh-native-codex-cli-field{display:flex;flex-direction:column;gap:3px}
+.dsh-native-codex-cli-field label{font-size:11px;opacity:.7}
+.dsh-native-codex-cli-field-row{display:flex;gap:6px}
+.dsh-native-codex-cli-sessionview{display:flex;flex-direction:column;height:100%;min-height:0}
+.dsh-native-codex-cli-sessionview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;font-size:11px;border-bottom:1px solid var(--dsh-border,rgba(128,128,128,.15))}
+.dsh-native-codex-cli-takeover{display:flex;flex-direction:column;border:1px solid var(--dsh-border,rgba(128,128,128,.3));border-radius:12px;overflow:hidden}
+.dsh-native-codex-cli-takeover-banner{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:11px;background:rgba(80,140,255,.14)}
+.dsh-native-codex-cli-inline-action{display:inline-flex;align-items:center;gap:4px}
+.dsh-native-codex-cli-inline-action-hot{background:var(--dsh-accent,rgba(80,140,255,.55))!important;border-color:transparent!important}
 
 /* --- readability pass -------------------------------------------------------
    The first live build painted several controls with their own filled colours;
@@ -2242,65 +2242,65 @@ h5.dsh-codex-h,h6.dsh-codex-h{font-size:13px}
    plugin owns is now transparent and inherits DSH's own text colour, so it
    tracks the active theme in both light and dark. Declared last so it wins
    against the earlier rules without editing each one. */
-.dsh-codex-textarea,
-.dsh-codex-input,
-.dsh-codex-select{
+.dsh-native-codex-cli-textarea,
+.dsh-native-codex-cli-input,
+.dsh-native-codex-cli-select{
   background:transparent!important;
   color:inherit!important;
   border:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.35))!important;
 }
-.dsh-codex-panel button,
-.dsh-codex-sessionview button,
-.dsh-codex-takeover button,
-.dsh-codex-dock button,
-.dsh-codex-inline-action,
-.dsh-codex-approval button{
+.dsh-native-codex-cli-panel button,
+.dsh-native-codex-cli-sessionview button,
+.dsh-native-codex-cli-takeover button,
+.dsh-native-codex-cli-dock button,
+.dsh-native-codex-cli-inline-action,
+.dsh-native-codex-cli-approval button{
   background:transparent!important;
   color:inherit!important;
   border:1px solid var(--dsw-alias-border-l1,rgba(128,128,128,.35))!important;
 }
-.dsh-codex-primary{
+.dsh-native-codex-cli-primary{
   background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 34%,transparent)!important;
   color:inherit!important;
   border-color:transparent!important;
 }
-.dsh-codex-danger{
+.dsh-native-codex-cli-danger{
   background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#dc4646) 30%,transparent)!important;
   color:inherit!important;
   border-color:transparent!important;
 }
-.dsh-codex-inline-action-hot,
-.dsh-codex-inline-action-hot:hover{
+.dsh-native-codex-cli-inline-action-hot,
+.dsh-native-codex-cli-inline-action-hot:hover{
   background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 34%,transparent)!important;
   color:inherit!important;
   border-color:transparent!important;
 }
-.dsh-codex-link,
-.dsh-codex-link:hover{
+.dsh-native-codex-cli-link,
+.dsh-native-codex-cli-link:hover{
   background:transparent!important;
   color:var(--dsw-alias-brand-primary,inherit)!important;
   border:none!important;
 }
-.dsh-codex-code,
-.dsh-codex-pre,
-.dsh-codex-inline-code{background:color-mix(in srgb,currentColor 10%,transparent)}
-.dsh-codex-bubble{background:color-mix(in srgb,currentColor 10%,transparent)}
-.dsh-codex-bubble-user{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 24%,transparent)}
-.dsh-codex-card,
-.dsh-codex-notice,
-.dsh-codex-approval{background:color-mix(in srgb,currentColor 7%,transparent)}
-.dsh-codex-panel,
-.dsh-codex-sessionview,
-.dsh-codex-takeover,
-.dsh-codex-dock{color:var(--dsw-alias-label-primary,inherit)}
-.dsh-codex-muted{color:var(--dsw-alias-label-secondary,currentColor)!important}
+.dsh-native-codex-cli-code,
+.dsh-native-codex-cli-pre,
+.dsh-native-codex-cli-inline-code{background:color-mix(in srgb,currentColor 10%,transparent)}
+.dsh-native-codex-cli-bubble{background:color-mix(in srgb,currentColor 10%,transparent)}
+.dsh-native-codex-cli-bubble-user{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#508cff) 24%,transparent)}
+.dsh-native-codex-cli-card,
+.dsh-native-codex-cli-notice,
+.dsh-native-codex-cli-approval{background:color-mix(in srgb,currentColor 7%,transparent)}
+.dsh-native-codex-cli-panel,
+.dsh-native-codex-cli-sessionview,
+.dsh-native-codex-cli-takeover,
+.dsh-native-codex-cli-dock{color:var(--dsw-alias-label-primary,inherit)}
+.dsh-native-codex-cli-muted{color:var(--dsw-alias-label-secondary,currentColor)!important}
 
 /* --- match DSH's own composer ------------------------------------------------
    Reference: DSH's native input is a *centred rounded card* with a max width,
    not an edge-to-edge strip. The takeover replaces the resident composer's
    contents, so the centring has to be done here or it stretches across the
    whole column and swallows the bottom of the page. */
-.dsh-codex-takeover{
+.dsh-native-codex-cli-takeover{
   display:flex!important;
   flex-direction:column!important;
   box-sizing:border-box!important;
@@ -2317,37 +2317,37 @@ h5.dsh-codex-h,h6.dsh-codex-h{font-size:13px}
   overflow:visible!important;
   gap:0!important;
 }
-.dsh-codex-takeover-banner{
+.dsh-native-codex-cli-takeover-banner{
   background:transparent!important;
   border:none!important;
   padding:0 2px 4px!important;
   color:var(--dsw-alias-label-secondary,inherit);
   font-size:11px;
 }
-.dsh-codex-composer{
+.dsh-native-codex-cli-composer{
   border-top:none!important;
   background:transparent!important;
   padding:0!important;
   gap:4px!important;
 }
-.dsh-codex-textarea{
+.dsh-native-codex-cli-textarea{
   border:none!important;
   background:transparent!important;
   resize:none!important;
   padding:4px 2px!important;
 }
-.dsh-codex-textarea:focus{outline:none!important}
+.dsh-native-codex-cli-textarea:focus{outline:none!important}
 /* Toolbar row: selectors left, send action right — like the native composer. */
-.dsh-codex-composer-bar{flex-wrap:nowrap!important;gap:8px!important}
-.dsh-codex-composer-selects{gap:10px!important;min-width:0;flex:1 1 auto}
-.dsh-codex-composer-actions{flex:0 0 auto;margin-left:auto}
-.dsh-codex-select{border:none!important;background:transparent!important;padding:0 2px!important}
-.dsh-codex-primary{
+.dsh-native-codex-cli-composer-bar{flex-wrap:nowrap!important;gap:8px!important}
+.dsh-native-codex-cli-composer-selects{gap:10px!important;min-width:0;flex:1 1 auto}
+.dsh-native-codex-cli-composer-actions{flex:0 0 auto;margin-left:auto}
+.dsh-native-codex-cli-select{border:none!important;background:transparent!important;padding:0 2px!important}
+.dsh-native-codex-cli-primary{
   border-radius:999px!important;
   padding:4px 14px!important;
 }
 /* The dock lines up with the composer card instead of the full column. */
-.dsh-codex-dock{
+.dsh-native-codex-cli-dock{
   background:transparent!important;
   width:100%!important;
   max-width:38rem!important;

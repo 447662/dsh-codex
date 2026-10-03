@@ -1,4 +1,4 @@
-# dsh-codex — 用 DSH 的聊天界面直接驱动 Codex
+# dsh-native-codex-cli — 用 DSH 的聊天界面直接驱动 Codex
 
 **简体中文** · [English](README.en.md)
 
@@ -6,8 +6,8 @@ DSH 负责聊天界面，**Codex CLI 负责整个任务执行与原生历史**�
 
 ```
 DSH Web GUI (本插件 client 半)
-   │  POST /dsh-codex/rpc      ← 一次性请求/响应
-   │  GET  /dsh-codex/events   ← SSE：流式输出 / 审批 / 通知
+   │  POST /dsh-native-codex-cli/rpc      ← 一次性请求/响应
+   │  GET  /dsh-native-codex-cli/events   ← SSE：流式输出 / 审批 / 通知
    ▼
 本插件 host 半（跑在 DSH 宿主进程里）
    │  newline-delimited JSON-RPC over stdio
@@ -28,7 +28,7 @@ codex app-server  ←→  Codex CLI 原生线程（唯一历史来源）
 | 5 | 工具展示 | `commandExecution`（命令/状态/exit code/输出/耗时）、`fileChange`（文件清单 + unified diff）、`mcpToolCall`/`dynamicToolCall`/`webSearch`/`functionCallOutput`、`error`/`warning` 通知 | `client/client.js` 各 `*Item` 组件 |
 | 6 | 停止任务 | `turn/interrupt`（真中断，不是停动画）；并先回绝 Codex 正在等待的审批，避免中断排在审批后面 | `interruptTurn` |
 | 7 | 审批与提问 | 服务端请求 → 界面卡片 → 选择回传：`item/commandExecution/requestApproval`、`item/fileChange/requestApproval`、`item/permissions/requestApproval`、`item/tool/requestUserInput`、`mcpServer/elicitation/request` | `_onServerRequest`、`buildApprovalResponse`、`ApprovalCard`/`QuestionCard` |
-| 8 | 刷新与重启 | 线程↔会话关联持久化到 `~/.dsh/storages/dsh-codex/bindings.json`；`clientMessageId` 幂等去重；SSE 断线自动重连并重新 `snapshot`；app-server 重启后自动 `thread/resume` | `lib/bindings.js`、`startTurn` 去重、`connectEvents` |
+| 8 | 刷新与重启 | 线程↔会话关联持久化到 `~/.dsh/storages/dsh-native-codex-cli/bindings.json`；`clientMessageId` 幂等去重；SSE 断线自动重连并重新 `snapshot`；app-server 重启后自动 `thread/resume` | `lib/bindings.js`、`startTurn` 去重、`connectEvents` |
 
 ---
 
@@ -58,7 +58,7 @@ codex app-server  ←→  Codex CLI 原生线程（唯一历史来源）
 配置走一个 JSON 文件（**不是** `cordis.patch.yml` 里的 `config:`）：
 
 ```
-~/.dsh/storages/dsh-codex/config.json
+~/.dsh/storages/dsh-native-codex-cli/config.json
 ```
 
 ```json
@@ -92,10 +92,10 @@ codex app-server  ←→  Codex CLI 原生线程（唯一历史来源）
 > （`Config` 检查器当时报的唯一异常状态 `unsupported`）。所以插件既不导出 `Config`，
 > patch 里也不带 config，与两个可用的第三方插件保持一致。
 > 若以后要恢复 loader 托管配置，导出符合 Standard Schema 的对象即可：
-> `export const Config = { '~standard': { version: 1, vendor: 'dsh-codex', validate: (v) => ({ value: ... }) } }`。
+> `export const Config = { '~standard': { version: 1, vendor: 'dsh-native-codex-cli', validate: (v) => ({ value: ... }) } }`。
 
-插件日志：`~/.dsh/logs/dsh-codex.log`，也可以在浏览器里 `GET /dsh-codex/log` 看最近 300 行。
-客户端把关键诊断（Slot 注册、输入框 hook 形状）POST 到 `/dsh-codex/diag`，同样落在这个文件里。
+插件日志：`~/.dsh/logs/dsh-native-codex-cli.log`，也可以在浏览器里 `GET /dsh-native-codex-cli/log` 看最近 300 行。
+客户端把关键诊断（Slot 注册、输入框 hook 形状）POST 到 `/dsh-native-codex-cli/diag`，同样落在这个文件里。
 
 ---
 
@@ -104,7 +104,7 @@ codex app-server  ←→  Codex CLI 原生线程（唯一历史来源）
 ### 从 GitHub 安装（推荐）
 
 ```bash
-dsh plugin --profile desktop add git+https://github.com/447662/dsh-codex.git
+dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-cli.git
 ```
 
 然后**重启 DSH**。`dsh plugin add` 会把包写进 profile 的 `dependencies` 与 `dsh.profile.bundles`，插件自带的 `cordis.patch.yml` 会把自己插进加载树。
@@ -114,23 +114,23 @@ dsh plugin --profile desktop add git+https://github.com/447662/dsh-codex.git
 ### 从本地克隆安装（开发用）
 
 ```powershell
-git clone https://github.com/447662/dsh-codex.git <仓库路径>
+git clone https://github.com/447662/dsh-native-codex-cli.git <仓库路径>
 
 # 1) 让 profile 能解析到本包（junction 等价于 pnpm link）
-New-Item -ItemType Junction -Path "$env:DSH_PROFILE_DIR\node_modules\dsh-codex" -Target "<仓库路径>"
+New-Item -ItemType Junction -Path "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Target "<仓库路径>"
 
 # 2) 在 profile 的 package.json 里加上：
-#    dependencies."dsh-codex" = "link:<仓库路径>"
-#    dsh.profile.bundles      += "dsh-codex"
-#    不要在 cordis.patch.yml 里给 dsh-codex 写 config（原因见第 3 节）
+#    dependencies."dsh-native-codex-cli" = "link:<仓库路径>"
+#    dsh.profile.bundles      += "dsh-native-codex-cli"
+#    不要在 cordis.patch.yml 里给 dsh-native-codex-cli 写 config（原因见第 3 节）
 ```
 
 ### 卸载
 
 ```powershell
-# 从 profile package.json 的 dsh.profile.bundles 与 dependencies 里删掉 dsh-codex，
-# 再删掉 junction（或 dsh plugin --profile desktop remove dsh-codex），然后重启 DSH。
-Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-codex" -Force
+# 从 profile package.json 的 dsh.profile.bundles 与 dependencies 里删掉 dsh-native-codex-cli，
+# 再删掉 junction（或 dsh plugin --profile desktop remove dsh-native-codex-cli），然后重启 DSH。
+Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Force
 ```
 
 插件的两个半边都是**失败安全**的：host 半不硬依赖任何 DSH 服务（`ctx.inject` 拿不到 `webServer` 只记日志），client 半对每个 Slot 注册单独 try/catch，注册失败只上报不抛错，并且 **load 期不会启动 Codex 进程**（第一次调用才拉起）。
@@ -139,10 +139,10 @@ Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-codex" -Force
 
 按这个顺序看，一步就能定位到层次：
 
-1. `~/.dsh/logs/dsh-codex.log` 里有 `[boot] module imported` → 模块被解析到了；没有 → 包名/exports 解析失败。
-2. 有 `[boot]` 但没有 `[host] dsh-codex host loaded` → 条目创建了但**没有激活**，几乎一定是 `Config` schema 的问题（见第 3 节）。
+1. `~/.dsh/logs/dsh-native-codex-cli.log` 里有 `[boot] module imported` → 模块被解析到了；没有 → 包名/exports 解析失败。
+2. 有 `[boot]` 但没有 `[host] dsh-native-codex-cli host loaded` → 条目创建了但**没有激活**，几乎一定是 `Config` schema 的问题（见第 3 节）。
 3. 有 `[host]` 但没有 `[routes] routes mounted` → `webServer` 服务没拿到，检查 `ctx.inject` 日志。
-4. 前三步都有、但 `POST /dsh-codex/rpc` 仍 404 → 路由注册到了另一个 web 服务实例。
+4. 前三步都有、但 `POST /dsh-native-codex-cli/rpc` 仍 404 → 路由注册到了另一个 web 服务实例。
 
 ---
 
@@ -161,7 +161,7 @@ npm run check:http     # HTTP 边界
 |---|---|
 | `test/load-check.mjs` | client bundle 的 module 前导、6 个 Slot 声明、composer selector 纯度、host 路由挂载、`/codex` 命令形状、**会话镜像事件形状**、**Markdown 渲染器** |
 | `test/smoke-bridge.mjs` | 真起 `codex app-server`，覆盖要求 1–8：线程列表 / 新建（cwd + 权限）/ 提交 turn / 流式增量 / 命令与文件改动 / 真中断 / **真实审批往返** / 去重与历史恢复 |
-| `test/http-check.mjs` | 浏览器实际用的那条通道：`POST /dsh-codex/rpc` + `GET /dsh-codex/events`（SSE） |
+| `test/http-check.mjs` | 浏览器实际用的那条通道：`POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events`（SSE） |
 
 当前实测：**load-check 全绿 / smoke-bridge 25/25 / http-check 22/22**。
 
@@ -181,8 +181,8 @@ npm run check:http     # HTTP 边界
 3. **历史只能靠 `thread/resume` 拿**：在 Codex CLI 0.153.4 上 `thread/turns/list` 返回 `list_turns is not supported yet`，`thread/read` 带 `includeTurns` 也会报同一个错。插件会检测到并**不再重试分页**，改用 `resume` 返回的 turns；因此历史分页代码是死路径，等 Codex 实装后自动生效。
 4. **`assistant/message` 无法由插件写入**：真实事件的 `data` 需要内嵌 provider 原始流（`usage` / `stream`），缺失时 DSH 的会话投影会抛 `Cannot read properties of undefined (reading 'length')` 并导致该会话历史加载失败。所以会话镜像只写 `user/message` + turn 生命周期，Codex 的回复由主页面 dock 渲染。
 5. **生成的协议绑定落后于运行时**：0.153.4 实际会在线上多发一些绑定里没有的字段（如 `canAcceptDirectInput`、`availableDecisions`）。本插件只读取自己需要的字段，多余字段一律忽略。
-6. **`conversation.input.right` 的 `useInput`/`inputActions` 形状**是运行期探测的：首次在真实 GUI 里加载后，`~/.dsh/logs/dsh-codex.log` 会记录 `composer-hooks` 一行，里面是宿主实际传入的字段名。如果与你看到的不一致，按那一行改 `ComposerCodexAction` 里的 `liveDraft` / 清空草稿分支即可。
-7. **上传的图片会落盘**在 `~/.dsh/storages/dsh-codex/uploads/`，由 `GET /dsh-codex/image?p=<路径>` 提供（路径被限制在该目录内）。文件不会自动清理。
+6. **`conversation.input.right` 的 `useInput`/`inputActions` 形状**是运行期探测的：首次在真实 GUI 里加载后，`~/.dsh/logs/dsh-native-codex-cli.log` 会记录 `composer-hooks` 一行，里面是宿主实际传入的字段名。如果与你看到的不一致，按那一行改 `ComposerCodexAction` 里的 `liveDraft` / 清空草稿分支即可。
+7. **上传的图片会落盘**在 `~/.dsh/storages/dsh-native-codex-cli/uploads/`，由 `GET /dsh-native-codex-cli/image?p=<路径>` 提供（路径被限制在该目录内）。文件不会自动清理。
 8. `turn/start` 的返回值是 **stub**（`itemsView:"notLoaded"`，时间戳为空），`turn/completed` 也只带 `itemsView:"summary"` 的切片。插件的镜像以 `item/started` / `item/completed` / delta 为准。
 
 ---
@@ -190,8 +190,8 @@ npm run check:http     # HTTP 边界
 ## 7. 参与开发
 
 ```bash
-git clone https://github.com/447662/dsh-codex.git
-cd dsh-codex
+git clone https://github.com/447662/dsh-native-codex-cli.git
+cd dsh-native-codex-cli
 npm run check          # 三套自检都应全绿
 ```
 
@@ -206,6 +206,6 @@ npm run check          # 三套自检都应全绿
 
 ## 8. 许可
 
-[MIT](LICENSE) © dsh-codex contributors
+[MIT](LICENSE) © dsh-native-codex-cli contributors
 
 本项目是独立社区项目，与 DeepSeek 官方及 OpenAI 均无隶属关系。Codex 是 OpenAI 的产品；本插件只是通过其公开的 `codex app-server` 协议驱动本机已安装的 CLI。

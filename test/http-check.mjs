@@ -4,8 +4,8 @@
  * Brings up a bare node:http server wired the way `ctx.webServer` is, mounts
  * lib/routes.js on it, and drives it with fetch:
  *
- *   POST /dsh-codex/rpc      every bridge operation
- *   GET  /dsh-codex/events   the SSE stream the UI renders from
+ *   POST /dsh-native-codex-cli/rpc      every bridge operation
+ *   GET  /dsh-native-codex-cli/events   the SSE stream the UI renders from
  *
  * This is the closest verification of the shipped plugin that is possible
  * without launching DSH itself.
@@ -85,7 +85,7 @@ const base = `http://127.0.0.1:${port}`
 console.log(`harness listening on ${base}\n`)
 
 async function call(method, params) {
-  const response = await fetch(`${base}/dsh-codex/rpc`, {
+  const response = await fetch(`${base}/dsh-native-codex-cli/rpc`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ method, params }),
@@ -100,7 +100,7 @@ let sseAbort = null
 async function consumeEvents() {
   const controller = new AbortController()
   sseAbort = controller
-  const response = await fetch(`${base}/dsh-codex/events`, { signal: controller.signal })
+  const response = await fetch(`${base}/dsh-native-codex-cli/events`, { signal: controller.signal })
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -155,16 +155,16 @@ function waitFor(predicate, timeoutMs, label) {
 try {
   void consumeEvents()
 
-  const health = await fetch(`${base}/dsh-codex/health`).then((r) => r.json())
-  check('GET /dsh-codex/health responds', health.ok === true)
+  const health = await fetch(`${base}/dsh-native-codex-cli/health`).then((r) => r.json())
+  check('GET /dsh-native-codex-cli/health responds', health.ok === true)
 
-  const missing = await fetch(`${base}/dsh-codex/nope`).then((r) => r.status)
+  const missing = await fetch(`${base}/dsh-native-codex-cli/nope`).then((r) => r.status)
   check('unknown route 404s', missing === 404, String(missing))
 
   const badMethod = await call('does.not.exist', {})
   check('unknown RPC method returns an error envelope', badMethod.ok === false, badMethod.error?.message ?? '')
 
-  const badBody = await fetch(`${base}/dsh-codex/rpc`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{oops' }).then((r) => r.json())
+  const badBody = await fetch(`${base}/dsh-native-codex-cli/rpc`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{oops' }).then((r) => r.json())
   check('malformed JSON body is rejected cleanly', badBody.ok === false, badBody.error?.message ?? '')
 
   const status = await call('status')
@@ -244,8 +244,8 @@ try {
   const models = await call('models.list')
   check('rpc models.list works over HTTP', models.ok === true && models.result.models.length > 0, models.result?.models?.length ? `${models.result.models.length} model(s)` : models.error?.message)
 
-  const logTail = await fetch(`${base}/dsh-codex/log`).then((r) => r.json())
-  check('GET /dsh-codex/log exposes recent plugin log lines', logTail.ok === true && Array.isArray(logTail.lines) && logTail.lines.length > 0, `${logTail.lines?.length ?? 0} line(s)`)
+  const logTail = await fetch(`${base}/dsh-native-codex-cli/log`).then((r) => r.json())
+  check('GET /dsh-native-codex-cli/log exposes recent plugin log lines', logTail.ok === true && Array.isArray(logTail.lines) && logTail.lines.length > 0, `${logTail.lines?.length ?? 0} line(s)`)
 
   await call('threads.delete', { threadId }).catch(() => {})
 } finally {

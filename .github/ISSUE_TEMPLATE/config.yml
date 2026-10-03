@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Installation and configuration questions
+    url: https://github.com/447662/dsh-native-codex-cli/blob/main/README.md
+    about: The README covers install, the config file, the @codex hand-off semantics and the known limitations.
+  - name: Plugin log shows nothing useful
+    url: https://github.com/447662/dsh-native-codex-cli/blob/main/README.md#troubleshooting-the-plugin-did-not-load
+    about: The four-layer checklist in the README narrows down "the plugin did not load" without a report.
