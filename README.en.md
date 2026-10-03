@@ -2,6 +2,10 @@
 
 **English** · [简体中文](README.md)
 
+[![check](https://github.com/447662/dsh-native-codex-cli/actions/workflows/check.yml/badge.svg)](https://github.com/447662/dsh-native-codex-cli/actions/workflows/check.yml)
+[![release](https://img.shields.io/github/v/release/447662/dsh-native-codex-cli)](https://github.com/447662/dsh-native-codex-cli/releases)
+[![license](https://img.shields.io/github/license/447662/dsh-native-codex-cli)](LICENSE)
+
 DSH owns the chat interface; **the Codex CLI owns task execution and native thread history**. Whatever you type in DSH is handed to Codex's `turn/start` **verbatim** — no second AI paraphrases it, summarises it, or replays a chat archive to fake continuity. Every character rendered in the UI comes from Codex's own protocol frames.
 
 ```
@@ -95,6 +99,17 @@ Plugin log: `~/.dsh/logs/dsh-native-codex-cli.log`, or `GET /dsh-native-codex-cl
 
 ## 4. Install / uninstall
 
+### Requirements
+
+| Needed | Notes |
+|--------|-------|
+| **DSH** with the Web GUI (desktop or `dsh web`) | the plugin needs `webServer` and the Slot extension points |
+| **Codex CLI** | **no PATH setup required** — the CLI bundled with the desktop app, an npm global install, and `~/.codex/packages/standalone/...` are all found automatically (see the troubleshooting section below). `codex --version` just has to work |
+| **A logged-in Codex** | the plugin never touches authentication; it reuses whatever login your machine already has |
+| Node 18+ | for the self-check scripts only |
+
+> Verified against **Codex CLI 0.153.4 + DSH Desktop 0.2.0-rc.2 on Windows 11**, with the same self-checks running on Linux CI.
+
 ### From GitHub (recommended)
 
 ```bash
@@ -104,6 +119,18 @@ dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-
 Then **restart DSH**. `dsh plugin add` writes the package into the profile's `dependencies` and `dsh.profile.bundles`, and the plugin's own `cordis.patch.yml` inserts itself into the loader tree.
 
 > **A restart is required**: a profile's bundle list is not hot-reloaded, and `plugin-manager`'s enable/disable only flips an entry's `disabled` bit — it does not re-import the module.
+
+### Upgrading
+
+Re-run the same `add` command and restart DSH:
+
+```bash
+dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-cli.git
+```
+
+`~/.dsh/storages/dsh-native-codex-cli/bindings.json` holds the session⇄thread associations, so upgrading does not lose them.
+
+> Upgrading from **0.2.0 / 0.2.1**: go to **0.2.2 or newer**. Those versions killed the DSH host process when the CLI could not be found, and they could not see the CLI that ships with the Codex desktop app — so they reported "Codex CLI not found" on machines where Codex was installed.
 
 ### From a local clone (development)
 
@@ -164,24 +191,30 @@ If it still cannot find the CLI, the error lists **every directory that was sear
 
 ## 5. Self-checks
 
-`npm run check` runs all four; none of them needs DSH or a browser (just Node 18+ and a logged-in Codex CLI):
+The first four (**run by CI on every push**) need no DSH, no browser and **no Codex installation**, and finish in seconds:
 
 ```bash
 npm run check          # everything
-npm run check:utf8     # every tracked file is clean UTF-8
-npm run check:load     # load-time self-check (seconds)
+npm run check:utf8     # encoding guard (every tracked file must be clean UTF-8)
+npm run check:load     # load-time self-check
+npm run check:spawn    # a missing CLI must not kill the host
+npm run check:resolve  # does the CLI search cover the desktop app's directory?
 npm run check:smoke    # protocol-level end to end (spawns a real codex app-server, minutes)
 npm run check:http     # HTTP boundary
 ```
 
-| Script | Coverage |
-|--------|----------|
-| `tools/check-utf8.mjs` | no file is non-UTF-8 or BOM-prefixed — a Windows shell round-trip once read these UTF-8 sources as GBK and silently destroyed every Chinese character in the README |
-| `test/load-check.mjs` | client bundle preamble, the six slot declarations, composer selector purity, host route mounting, `/codex` command shape, **session-mirror event shapes**, **the Markdown renderer** |
-| `test/smoke-bridge.mjs` | spawns a real `codex app-server` and covers requirements 1–8: thread list / create (cwd + permissions) / submit turn / streaming deltas / command and file-change items / a real interrupt / **a real approval round-trip** / dedupe and history restore |
-| `test/http-check.mjs` | the exact surface the browser uses: `POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events` (SSE) |
+| Script | Coverage | Why it exists |
+|--------|----------|---------------|
+| `tools/check-utf8.mjs` | every tracked file is clean UTF-8, no BOM | one Windows `Get-Content`/`Set-Content` round-trip re-read these sources as CP936 and **destroyed the whole Chinese README** |
+| `test/load-check.mjs` | client bundle preamble, the six slot declarations, composer selector purity, host route mounting, `/codex` command shape, **session-mirror event shapes**, **the Markdown renderer** | a `Config` schema incident left the plugin **completely inactive** with no indication why |
+| `test/spawn-failure-check.mjs` | starts against a deliberately missing binary: it must reject cleanly with an actionable message, and **nothing may escape as an unhandled rejection or uncaught exception** | `emit('error')` with no listener rethrows synchronously and **took the entire DSH host down** |
+| `test/resolve-bin-check.mjs` | the CLI candidate order for Windows and POSIX (injected fake environment, so it runs anywhere) | the CLI bundled with the desktop app is invisible to a stale-`PATH` process, and was misreported as "Codex not installed" |
+| `test/smoke-bridge.mjs` | spawns a real `codex app-server` and covers requirements 1–8: thread list / create (cwd + permissions) / submit turn / streaming deltas / command and file-change items / a real interrupt / **a real approval round-trip** / dedupe and history restore | — |
+| `test/http-check.mjs` | the exact surface the browser uses: `POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events` (SSE) | — |
 
-Current results: **load-check green / smoke-bridge 25/25 / http-check 22/22**.
+Current results: **utf8 green / load-check green / spawn-failure 6/6 / resolve-bin green / smoke-bridge 25/25 / http-check 22/22**.
+
+> Both `test/*-check.mjs` guards were **reverse-engineered from real incidents** — each one corresponds to a failure that already happened. The workflow is [`.github/workflows/check.yml`](.github/workflows/check.yml).
 
 ### Maintenance tooling
 

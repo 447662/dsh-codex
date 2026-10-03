@@ -2,6 +2,10 @@
 
 **简体中文** · [English](README.en.md)
 
+[![check](https://github.com/447662/dsh-native-codex-cli/actions/workflows/check.yml/badge.svg)](https://github.com/447662/dsh-native-codex-cli/actions/workflows/check.yml)
+[![release](https://img.shields.io/github/v/release/447662/dsh-native-codex-cli)](https://github.com/447662/dsh-native-codex-cli/releases)
+[![license](https://img.shields.io/github/license/447662/dsh-native-codex-cli)](LICENSE)
+
 DSH 负责聊天界面，**Codex CLI 负责整个任务执行与原生历史**。你在 DSH 里输入的任务会**原样**交给 Codex 的 `turn/start`，没有任何第二个 AI 转述、总结或"读聊天档案模拟续接"的环节；界面里渲染的每一个字都来自 Codex 自己推送的协议帧。
 
 ```
@@ -101,6 +105,17 @@ codex app-server  ←→  Codex CLI 原生线程（唯一历史来源）
 
 ## 4. 安装 / 卸载
 
+### 前置条件
+
+| 需要 | 说明 |
+|---|---|
+| **DSH**（带 Web GUI：桌面端或 `dsh web`） | 插件依赖 `webServer` 与 Slot 扩展点 |
+| **Codex CLI** | **不需要手动配置 PATH** —— 桌面端自带的 CLI、npm 全局安装、`~/.codex/packages/standalone/...` 都会被自动找到（见下面的「排查」一节）。只要 `codex --version` 能跑就行 |
+| **已登录的 Codex** | 插件不碰认证，直接用你本机 Codex 已有登录态 |
+| Node 18+ | 仅自检脚本需要 |
+
+> 验证环境：**Codex CLI 0.153.4 + DSH Desktop 0.2.0-rc.2（Windows 11）**，CI 在 Linux 上跑同一套自检。
+
 ### 从 GitHub 安装（推荐）
 
 ```bash
@@ -110,6 +125,18 @@ dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-
 然后**重启 DSH**。`dsh plugin add` 会把包写进 profile 的 `dependencies` 与 `dsh.profile.bundles`，插件自带的 `cordis.patch.yml` 会把自己插进加载树。
 
 > **必须重启**：profile 的 bundle 列表不会在运行中热加载；`plugin-manager` 的启用/停用只切条目的 `disabled` 位，不会重新导入模块。
+
+### 升级
+
+重跑同一条 `add` 命令，然后重启 DSH 即可：
+
+```bash
+dsh plugin --profile desktop add git+https://github.com/447662/dsh-native-codex-cli.git
+```
+
+`~/.dsh/storages/dsh-native-codex-cli/bindings.json` 保存着"会话 ↔ Codex 线程"的关联，升级不会丢。
+
+> 从 **0.2.0 / 0.2.1** 升级请务必升到 **0.2.2 或更高**：旧版本在找不到 Codex CLI 时会让 DSH 宿主进程直接退出；同时它们**看不见桌面端自带的 CLI**，会误报"未找到 Codex CLI"。
 
 ### 从本地克隆安装（开发用）
 
@@ -170,22 +197,30 @@ Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Force
 
 ## 5. 自检与验证
 
-`npm run check` 一次跑完三套；它们都不需要 DSH，也不需要浏览器（只需要 Node 18+ 和已登录的 Codex CLI）：
+前四项（**CI 每次提交都会跑**）不需要 DSH、不需要浏览器、**也不需要装 Codex**，秒级完成：
 
 ```bash
-npm run check          # 全部三套
-npm run check:load     # 加载期自检（秒级）
+npm run check          # 全部六套
+npm run check:utf8     # 编码守卫（每个被跟踪文件都必须是干净的 UTF-8）
+npm run check:load     # 加载期自检
+npm run check:spawn    # 缺 CLI 时宿主不许崩
+npm run check:resolve  # CLI 搜索路径是否覆盖桌面端目录
 npm run check:smoke    # 协议级端到端（会真起 codex app-server，几分钟）
 npm run check:http     # HTTP 边界
 ```
 
-| 脚本 | 覆盖什么 |
-|---|---|
-| `test/load-check.mjs` | client bundle 的 module 前导、6 个 Slot 声明、composer selector 纯度、host 路由挂载、`/codex` 命令形状、**会话镜像事件形状**、**Markdown 渲染器** |
-| `test/smoke-bridge.mjs` | 真起 `codex app-server`，覆盖要求 1–8：线程列表 / 新建（cwd + 权限）/ 提交 turn / 流式增量 / 命令与文件改动 / 真中断 / **真实审批往返** / 去重与历史恢复 |
-| `test/http-check.mjs` | 浏览器实际用的那条通道：`POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events`（SSE） |
+| 脚本 | 覆盖什么 | 为什么存在 |
+|---|---|---|
+| `tools/check-utf8.mjs` | 每个被跟踪文件都是干净 UTF-8、无 BOM | 一次 Windows 的 `Get-Content`/`Set-Content` 往返把源码按 CP936 读回，**毁掉了整份中文 README** |
+| `test/load-check.mjs` | client bundle 的 module 前导、6 个 Slot 声明、composer selector 纯度、host 路由挂载、`/codex` 命令形状、**会话镜像事件形状**、**Markdown 渲染器** | 一次 `Config` schema 事故让插件**完全不激活**，且没有任何提示 |
+| `test/spawn-failure-check.mjs` | 用一个不存在的二进制名启动：必须干净地 reject、给出可操作信息，**不许有任何 unhandled rejection / uncaught exception 逃逸** | 曾经 `emit('error')` 无监听者时同步重抛，**整个 DSH 宿主进程随之退出** |
+| `test/resolve-bin-check.mjs` | Windows/POSIX 的 CLI 候选目录顺序（注入假环境，跨平台可跑） | 桌面端自带的 CLI 在"过期 PATH"下不可见，曾被误判为"没装 Codex" |
+| `test/smoke-bridge.mjs` | 真起 `codex app-server`，覆盖要求 1–8：线程列表 / 新建（cwd + 权限）/ 提交 turn / 流式增量 / 命令与文件改动 / 真中断 / **真实审批往返** / 去重与历史恢复 | —— |
+| `test/http-check.mjs` | 浏览器实际用的那条通道：`POST /dsh-native-codex-cli/rpc` + `GET /dsh-native-codex-cli/events`（SSE） | —— |
 
-当前实测：**load-check 全绿 / smoke-bridge 25/25 / http-check 22/22**。
+当前实测：**utf8 全绿 / load-check 全绿 / spawn-failure 6/6 / resolve-bin 全绿 / smoke-bridge 25/25 / http-check 22/22**。
+
+> 这个仓库里的两个 `test/*-check.mjs` 都是**从真实事故倒推出来的**：每一个都对应一次已经发生过的故障。CI 见 [`.github/workflows/check.yml`](.github/workflows/check.yml)。
 
 ### 维护用的调研工具
 
