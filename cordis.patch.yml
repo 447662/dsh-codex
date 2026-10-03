@@ -1,0 +1,18 @@
+# dsh-codex bundle patch: inserts the Codex bridge into a profile's layer stack.
+#
+# NOTE: this row deliberately carries NO `config:` block.
+#
+# The cordis loader validates an entry's patch config against the plugin's
+# exported `Config` schema (`resolveConfig` calls `schema.validate`). A plugin
+# that exports no schema cannot receive a patch config at all — supplying one
+# fails entry activation with:
+#
+#   TypeError: Cannot read properties of undefined (reading 'validate')
+#
+# which is exactly how this plugin first failed to load in the live host. The
+# shipped third-party plugins avoid it by declaring neither. Runtime knobs are
+# therefore read from `~/.dsh/storages/dsh-codex/config.json` (see lib/config.js)
+# and fall back to the defaults in lib/index.js.
+- insert:
+    - id: dsh-codex
+      name: 'dsh-codex'

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Generated protocol research artifacts (regenerate with the scripts in tools/)
+.recon/
+*.recon/
+
+# Scratch homes created by the self-check scripts
+smoke-home/
+http-home/
+loadcheck-home/
+bindings.json
+
+# Logs
+*.log
+logs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

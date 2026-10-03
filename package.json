@@ -1,0 +1,69 @@
+{
+  "name": "dsh-codex",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness ⇄ Codex bridge. DSH owns the chat interface; Codex CLI (codex app-server) owns task execution and native thread history. Tasks go straight to Codex — no second AI in the loop, no chat-archive replay.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "lib/entry.js",
+  "exports": {
+    ".": {
+      "default": "./lib/entry.js"
+    },
+    "./client": {
+      "default": "./client/client.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek",
+    "deepseek-harness",
+    "codex",
+    "codex-cli",
+    "app-server",
+    "agent",
+    "bridge",
+    "chat"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-codex.git"
+  },
+  "homepage": "https://github.com/OWNER/dsh-codex#readme",
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-codex/issues"
+  },
+  "scripts": {
+    "check": "node test/load-check.mjs && node test/smoke-bridge.mjs && node test/http-check.mjs",
+    "check:load": "node test/load-check.mjs",
+    "check:smoke": "node test/smoke-bridge.mjs",
+    "check:http": "node test/http-check.mjs",
+    "recon:schema": "codex app-server generate-json-schema --out .recon/codex-schema && codex app-server generate-ts --out .recon/codex-ts",
+    "recon:digest": "node test/schema-digest.mjs .recon/codex-schema/v2 > .recon/SCHEMA_DIGEST.txt",
+    "recon:methods": "node test/method-map.mjs .recon/codex-schema/ClientRequest.json .recon/codex-schema/ServerRequest.json .recon/codex-schema/ServerNotification.json"
+  }
+}
