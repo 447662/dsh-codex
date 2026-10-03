@@ -1,0 +1,28 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Fails if any tracked file is not clean UTF-8. A Windows shell round-trip
+      # once read these sources as CP936 and destroyed the Chinese README.
+      - name: Encoding guard
+        run: node tools/check-utf8.mjs
+
+      # Pure shape/logic assertions: bundle preamble, the six slot declarations,
+      # composer selector purity, session-mirror event shapes, the Markdown
+      # renderer. Needs no DSH and no Codex login, so it runs in seconds.
+      - name: Load-time self-check
+        run: node test/load-check.mjs
