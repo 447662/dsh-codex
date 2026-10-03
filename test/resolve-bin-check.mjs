@@ -42,9 +42,16 @@ check(
   has(join(HOME, '.codex', 'packages', 'standalone', 'current', 'bin')),
 )
 check(
-  'PATH entries are probed first',
+  'PATH entries are probed first, split on the target platform separator',
   winDirs[0] === join('C:', 'Windows', 'system32') && winDirs[1] === join('C:', 'tools', 'bin'),
   winDirs.slice(0, 2).join(' , '),
+)
+// Splitting a Windows PATH on `:` (the POSIX separator) shreds every drive
+// letter into a bogus entry. This assertion is what caught that.
+check(
+  'no drive letter is split into a bogus entry',
+  !winDirs.some((dir) => dir === 'C' || dir === 'C:' || /^[A-Za-z]$/.test(dir)),
+  winDirs.filter((dir) => /^[A-Za-z]:?$/.test(dir)).join(' , ') || '(none)',
 )
 check(
   'win32 looks for .exe and .cmd shims',
