@@ -138,6 +138,28 @@ Work down this list; each step identifies exactly one layer:
 3. `[host]` present but no `[routes] routes mounted` → the `webServer` service was not available.
 4. All three present but `POST /dsh-native-codex-cli/rpc` still 404s → the routes registered on a different web-server instance.
 
+### The panel says "Codex CLI not found"
+
+**Since v0.2.1 this is only a message — it does not take DSH down** (older versions killed the host process; see the note below).
+
+The plugin does **not** rely on `PATH` alone. It searches:
+
+| Platform | Locations, in order |
+|----------|--------------------|
+| Windows | `PATH` → `%LOCALAPPDATA%\Programs\OpenAI\Codex\bin` (**the CLI bundled with the desktop app**) → `%LOCALAPPDATA%\OpenAI\Codex\bin` → `%ProgramFiles%\OpenAI\Codex\bin` → `%APPDATA%\npm` → `%LOCALAPPDATA%\pnpm` → `~/.codex/packages/standalone/current/bin`, `~/.codex/bin`, `~/.codex/plugins/.plugin-appserver` |
+| macOS / Linux | `PATH` → `~/.codex/packages/standalone/current/bin` → `~/.codex/bin` → `~/.local/bin` → `/usr/local/bin` → `/opt/homebrew/bin` → `/usr/bin` |
+
+> Why the search is necessary: **DSH is an Electron app**. The Codex desktop installer registers the CLI directory in the *user* environment, but a process that is already running — or one started by `explorer.exe`, which keeps the environment it had at logon — never sees it. So "Codex is installed" and "Codex is missing" looked identical.
+
+If it still cannot find the CLI, the error lists **every directory that was searched**. Then:
+
+1. Confirm `codex --version` works in a terminal;
+2. Or hard-code the path: set `"codexBin": "C:\\Users\\<you>\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin\\codex.exe"` in `~/.dsh/storages/dsh-native-codex-cli/config.json`.
+
+`codexBin` accepts either form: a **full path** is used verbatim (never silently swapped for a different binary), while a **bare name** (such as `codex`) is searched for in the locations above.
+
+> Historical bug: in 0.2.0 and earlier a spawn failure called `emit('error')`, and `EventEmitter` **rethrows synchronously** when no `error` listener is attached — out of reach of the route's `try/catch`, so the whole DSH host exited and the app would not start. Fixed in v0.2.1 and guarded by `test/spawn-failure-check.mjs` in CI.
+
 ---
 
 ## 5. Self-checks

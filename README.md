@@ -144,6 +144,28 @@ Remove-Item "$env:DSH_PROFILE_DIR\node_modules\dsh-native-codex-cli" -Force
 3. 有 `[host]` 但没有 `[routes] routes mounted` → `webServer` 服务没拿到，检查 `ctx.inject` 日志。
 4. 前三步都有、但 `POST /dsh-native-codex-cli/rpc` 仍 404 → 路由注册到了另一个 web 服务实例。
 
+### 面板提示"未找到 Codex CLI"
+
+**从 v0.2.1 起这种情况只会显示提示，不会让 DSH 崩溃**（早期版本会让宿主进程直接死掉，见下面的说明）。
+
+插件**不只依赖 PATH**，它会自己去常见位置找：
+
+| 平台 | 搜索位置（顺序） |
+|---|---|
+| Windows | `PATH` → `%LOCALAPPDATA%\Programs\OpenAI\Codex\bin`（**桌面端自带的 CLI**）→ `%LOCALAPPDATA%\OpenAI\Codex\bin` → `%ProgramFiles%\OpenAI\Codex\bin` → `%APPDATA%\npm` → `%LOCALAPPDATA%\pnpm` → `~/.codex/packages/standalone/current/bin`、`~/.codex/bin`、`~/.codex/plugins/.plugin-appserver` |
+| macOS / Linux | `PATH` → `~/.codex/packages/standalone/current/bin` → `~/.codex/bin` → `~/.local/bin` → `/usr/local/bin` → `/opt/homebrew/bin` → `/usr/bin` |
+
+> 为什么必须自己找：**DSH 是 Electron 应用**。Codex 桌面端安装时把 CLI 目录写进的是*用户环境变量*，而已经在运行的进程、以及由 `explorer.exe` 启动的程序，沿用的是**登录时的旧环境** —— 于是"Codex 明明装了"和"Codex 没装"表现完全一样。
+
+如果还是找不到，错误信息里会列出**所有搜过的目录**，然后：
+
+1. 在终端确认 `codex --version` 能跑；
+2. 或者直接写死路径：`~/.dsh/storages/dsh-native-codex-cli/config.json` 里设 `"codexBin": "C:\\Users\\<你>\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin\\codex.exe"`。
+
+`codexBin` 的两种写法：**完整路径** → 原样使用（不会偷偷换成别的二进制）；**裸名字**（如 `codex`）→ 在上面那些位置里搜索这个名字。
+
+> 历史问题：0.2.0 及更早版本里，spawn 失败会走 `emit('error')`，而 `EventEmitter` 在没有 `error` 监听者时会**同步重抛** —— 路由的 try/catch 拦不住，整个 DSH 宿主进程随之退出（表现为"应用无法启动或已意外停止"）。v0.2.1 修复，并由 `test/spawn-failure-check.mjs` 在 CI 里长期守住。
+
 ---
 
 ## 5. 自检与验证

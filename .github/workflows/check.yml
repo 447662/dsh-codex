@@ -32,3 +32,9 @@ jobs:
       # the whole DSH host down. This runs against a deliberately missing binary.
       - name: Missing-binary self-check
         run: node test/spawn-failure-check.mjs
+
+      # The Codex desktop app ships its own CLI into a directory that a
+      # stale-environment Electron process cannot see on PATH, so the resolver
+      # probes a candidate list instead. Pure, and injected with a fake env.
+      - name: CLI resolution self-check
+        run: node test/resolve-bin-check.mjs
