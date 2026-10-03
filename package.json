@@ -1,6 +1,6 @@
 {
   "name": "dsh-native-codex-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness ⇄ Codex bridge. DSH owns the chat interface; Codex CLI (codex app-server) owns task execution and native thread history. Tasks go straight to Codex — no second AI in the loop, no chat-archive replay.",
   "type": "module",
   "license": "MIT",
