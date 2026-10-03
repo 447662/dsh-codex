@@ -26,3 +26,9 @@ jobs:
       # renderer. Needs no DSH and no Codex login, so it runs in seconds.
       - name: Load-time self-check
         run: node test/load-check.mjs
+
+      # Regression guard for the worst bug this plugin had: on a machine without
+      # the Codex CLI, `spawn codex ENOENT` became an uncaught exception and took
+      # the whole DSH host down. This runs against a deliberately missing binary.
+      - name: Missing-binary self-check
+        run: node test/spawn-failure-check.mjs

@@ -69,6 +69,11 @@ window.__ModuleLoader__.load({
         diagnostics: [],
         /** Data URL / route URL of the image shown full-screen, or null. */
         lightbox: null,
+        /**
+         * Last host-side failure (unreachable host, missing Codex CLI, …).
+         * Cleared automatically by the next successful RPC.
+         */
+        hostError: null,
       },
       listeners: new Set(),
       subscribe(listener) {
@@ -121,15 +126,39 @@ window.__ModuleLoader__.load({
 
     // ------------------------------------------------------------------ transport
 
+    /**
+     * One RPC round-trip.
+     *
+     * `hostError` is tracked separately from the render-error slot so the banner
+     * can clear itself: the host answers with something actionable (for example
+     * "Codex CLI not found") while it is unusable, and the moment a call
+     * succeeds again the stale complaint disappears on its own.
+     */
     async function rpc(method, params = {}) {
-      const response = await fetch(RPC_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ method, params }),
-      })
+      let response
+      try {
+        response = await fetch(RPC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ method, params }),
+        })
+      } catch (error) {
+        const message = `无法连接插件宿主进程（${method}）：${error?.message ?? error}`
+        store.set({ hostError: message })
+        throw new Error(message)
+      }
       const payload = await response.json().catch(() => null)
-      if (!payload) throw new Error(`dsh-native-codex-cli: empty reply from ${method}`)
-      if (!payload.ok) throw new Error(payload.error?.message ?? `dsh-native-codex-cli: ${method} failed`)
+      if (!payload) {
+        const message = `插件宿主进程返回了空响应（${method}）`
+        store.set({ hostError: message })
+        throw new Error(message)
+      }
+      if (!payload.ok) {
+        const message = payload.error?.message ?? `dsh-native-codex-cli: ${method} failed`
+        store.set({ hostError: message })
+        throw new Error(message)
+      }
+      if (store.state.hostError) store.set({ hostError: null })
       return payload.result
     }
 
@@ -1715,6 +1744,7 @@ window.__ModuleLoader__.load({
       const connection = useStore((state) => state.connection)
       const panel = useStore((state) => state.panel)
       const error = useStore((state) => state.error)
+      const hostError = useStore((state) => state.hostError)
       const [selectedThreadId, setSelectedThreadId] = React.useState(panel.lastThreadId ?? null)
       const [showList, setShowList] = React.useState(true)
 
@@ -1766,7 +1796,7 @@ window.__ModuleLoader__.load({
             }, '重启 Codex'),
           ),
         ),
-        error ? h('div', { className: 'dsh-native-codex-cli-error dsh-native-codex-cli-error-bar' }, error) : null,
+        (hostError || error) ? h('div', { className: 'dsh-native-codex-cli-error dsh-native-codex-cli-error-bar' }, hostError || error) : null,
         h(
           'div',
           { className: 'dsh-native-codex-cli-panel-body' },
